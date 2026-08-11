@@ -8,6 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "lint": "find src -type f -name '*.js' -print0 | xargs -0 -n1 node --check",
+    "test": "node scripts/test.js",
     "build:data": "node scripts/build-data.mjs"
   },
   "dependencies": {

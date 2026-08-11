@@ -21,11 +21,11 @@ export default function Controls({
           type="button"
           onClick={onTogglePinyin}
           aria-pressed={pinyinVisible}
-          className={`flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium transition-colors ${
+          className={`flex items-center gap-2 rounded-full border border-rule px-4 py-2 text-base font-medium transition duration-150 ease-out ${
             pinyinVisible
-              ? 'bg-jade-soft text-jade'
-              : 'bg-surface-dim text-ink-soft hover:text-ink'
-          }`}
+              ? 'bg-jade-soft text-jade shadow-sm shadow-jade/20'
+              : 'bg-surface-dim text-ink-soft hover:bg-surface hover:text-ink'
+          } active:scale-[0.98]`}
         >
           {pinyinVisible ? <Eye size={18} strokeWidth={2.25} /> : <EyeOff size={18} strokeWidth={2.25} />}
           {pinyinVisible ? 'Pinyin on' : 'Pinyin off'}
@@ -34,7 +34,7 @@ export default function Controls({
         <button
           type="button"
           onClick={onOpenVocab}
-          className="ml-auto flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium text-ink-soft transition-colors hover:bg-lavender-soft hover:text-ink"
+          className="ml-auto flex items-center gap-2 rounded-full border border-rule bg-surface px-4 py-2 text-base font-medium text-ink-soft transition duration-150 ease-out hover:bg-lavender-soft hover:text-ink active:scale-[0.98]"
         >
           <BookMarked size={18} strokeWidth={2.25} />
           Vocab
@@ -47,7 +47,7 @@ export default function Controls({
       </div>
 
       {pinyinVisible && (
-        <div className="mt-2.5 rounded-xl border border-rule bg-surface-dim/60 p-3">
+        <div className="mt-2.5 rounded-xl border border-rule bg-surface-dim p-3">
           <p className="mb-2 text-sm font-medium text-ink-soft">Which words should show pinyin?</p>
 
           <div className="flex flex-wrap gap-2">

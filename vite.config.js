@@ -8,4 +8,9 @@ export default defineConfig({
   worker: {
     format: 'es',
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    include: ['src/**/*.{test,spec}.{js,jsx,mjs}'],
+  },
 });
