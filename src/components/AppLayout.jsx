@@ -6,14 +6,18 @@ function Pane({ title, expandKey, expanded, onToggleExpand, children }) {
 
   return (
     <section
-      className={`flex flex-col overflow-hidden rounded-2xl border border-rule bg-surface transition-[flex-grow,flex-basis,height,width] duration-300 ${
-        isMinimized ? 'h-14 shrink-0 md:h-auto md:w-14' : 'min-h-0 flex-1 md:flex-[3]'
+      className={`flex flex-col overflow-hidden rounded-2xl border border-rule bg-surface transition-all duration-300 ease-out ${
+        isMinimized
+          ? 'h-14 shrink-0 md:h-full md:w-14 md:flex-[0_0_3.5rem]'
+          : isExpanded
+          ? 'min-h-0 flex-1 md:flex-[5]'
+          : 'min-h-0 flex-1 md:flex-[3]'
       }`}
     >
       <button
         type="button"
         onClick={() => onToggleExpand(isExpanded ? null : expandKey)}
-        className={`flex shrink-0 items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-surface-dim ${
+        className={`flex shrink-0 items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-surface-dim cursor-pointer ${
           isMinimized
             ? 'h-full w-full justify-between md:h-full md:w-14 md:flex-col md:justify-center md:gap-2 md:py-4'
             : 'w-full justify-between border-b border-rule'
@@ -21,8 +25,8 @@ function Pane({ title, expandKey, expanded, onToggleExpand, children }) {
         aria-label={isExpanded ? `Restore ${title} panel` : `Expand ${title} panel`}
       >
         <span
-          className={`font-display text-base font-semibold tracking-wide text-ink-soft ${
-            isMinimized ? 'md:[writing-mode:vertical-rl]' : ''
+          className={`font-display text-base font-semibold tracking-wide text-ink-soft transition-all duration-300 ${
+            isMinimized ? 'md:[writing-mode:vertical-rl] md:rotate-180' : ''
           }`}
         >
           {title}
@@ -32,7 +36,13 @@ function Pane({ title, expandKey, expanded, onToggleExpand, children }) {
         </span>
       </button>
 
-      {!isMinimized && <div className="min-h-0 flex-1">{children}</div>}
+      <div
+        className={`min-h-0 flex-1 transition-opacity duration-300 ${
+          isMinimized ? 'pointer-events-none opacity-0 h-0 overflow-hidden' : 'opacity-100'
+        }`}
+      >
+        {children}
+      </div>
     </section>
   );
 }

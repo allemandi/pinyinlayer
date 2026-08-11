@@ -25,7 +25,7 @@ export default function Controls({
             pinyinVisible
               ? 'bg-jade-soft text-jade shadow-sm shadow-jade/20'
               : 'bg-surface-dim text-ink-soft hover:bg-surface hover:text-ink'
-          } active:scale-[0.98]`}
+          } active:scale-[0.98] cursor-pointer`}
         >
           {pinyinVisible ? <Eye size={18} strokeWidth={2.25} /> : <EyeOff size={18} strokeWidth={2.25} />}
           {pinyinVisible ? 'Pinyin on' : 'Pinyin off'}
@@ -34,7 +34,7 @@ export default function Controls({
         <button
           type="button"
           onClick={onOpenVocab}
-          className="ml-auto flex items-center gap-2 rounded-full border border-rule bg-surface px-4 py-2 text-base font-medium text-ink-soft transition duration-150 ease-out hover:bg-lavender-soft hover:text-ink active:scale-[0.98]"
+          className="ml-auto flex items-center gap-2 rounded-full border border-rule bg-surface px-4 py-2 text-base font-medium text-ink-soft transition duration-150 ease-out hover:bg-lavender-soft hover:text-ink active:scale-[0.98] cursor-pointer"
         >
           <BookMarked size={18} strokeWidth={2.25} />
           Vocab
@@ -46,68 +46,80 @@ export default function Controls({
         </button>
       </div>
 
-      {pinyinVisible && (
-        <div className="mt-2.5 rounded-xl border border-rule bg-surface-dim p-3">
-          <p className="mb-2 text-sm font-medium text-ink-soft">Which words should show pinyin?</p>
+      <div
+        className={`grid transition-[grid-template-rows,margin-top] duration-300 ease-out ${
+          pinyinVisible ? 'grid-rows-[1fr] mt-2.5' : 'grid-rows-[0fr] mt-0'
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="rounded-xl border border-rule bg-surface-dim p-3">
+            <p className="mb-2 text-sm font-medium text-ink-soft">Which words should show pinyin?</p>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => onChangeHskFilter('all')}
-              aria-pressed={hskFilter === 'all'}
-              className={`rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                hskFilter === 'all'
-                  ? 'bg-lavender text-surface shadow-sm'
-                  : 'bg-surface text-ink hover:bg-lavender-soft'
-              }`}
-            >
-              Every word
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => onChangeHskFilter('all')}
+                aria-pressed={hskFilter === 'all'}
+                className={`rounded-lg px-4 py-2 text-base font-medium transition-colors cursor-pointer ${
+                  hskFilter === 'all'
+                    ? 'bg-lavender text-surface shadow-sm'
+                    : 'bg-surface text-ink hover:bg-lavender-soft'
+                }`}
+              >
+                Every word
+              </button>
 
-            <button
-              type="button"
-              onClick={() => onChangeHskFilter(hskFilter === 'all' ? 3 : hskFilter)}
-              aria-pressed={hskFilter !== 'all'}
-              className={`rounded-lg px-4 py-2 text-base font-medium transition-colors ${
-                hskFilter !== 'all'
-                  ? 'bg-jade text-surface shadow-sm'
-                  : 'bg-surface text-ink hover:bg-jade-soft'
-              }`}
-            >
-              Only harder words
-            </button>
-          </div>
-
-          {hskFilter !== 'all' && (
-            <div className="mt-3">
-              <p className="mb-2 text-sm text-ink-faint">
-                Hide pinyin on words I already know up to HSK level:
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {LEVELS.map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => onChangeHskFilter(level)}
-                    aria-pressed={hskFilter === level}
-                    aria-label={`Hide pinyin for HSK ${level} and below`}
-                    className={`min-w-[2.75rem] rounded-lg px-3 py-2 text-base font-semibold transition-colors ${
-                      hskFilter === level
-                        ? 'bg-jade text-surface shadow-sm'
-                        : 'bg-surface text-ink hover:bg-jade-soft'
-                    }`}
-                  >
-                    {level}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-2 text-sm leading-snug text-ink-faint">
-                Pinyin appears on words above HSK {hskFilter}. Hover or press-and-hold any word to peek at its pinyin.
-              </p>
+              <button
+                type="button"
+                onClick={() => onChangeHskFilter(hskFilter === 'all' ? 3 : hskFilter)}
+                aria-pressed={hskFilter !== 'all'}
+                className={`rounded-lg px-4 py-2 text-base font-medium transition-colors cursor-pointer ${
+                  hskFilter !== 'all'
+                    ? 'bg-jade text-surface shadow-sm'
+                    : 'bg-surface text-ink hover:bg-jade-soft'
+                }`}
+              >
+                Only harder words
+              </button>
             </div>
-          )}
+
+            <div
+              className={`grid transition-[grid-template-rows,margin-top] duration-300 ease-out ${
+                hskFilter !== 'all' ? 'grid-rows-[1fr] mt-3' : 'grid-rows-[0fr] mt-0'
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div>
+                  <p className="mb-2 text-sm text-ink-faint">
+                    Hide pinyin on words I already know up to HSK level:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {LEVELS.map((level) => (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={() => onChangeHskFilter(level)}
+                        aria-pressed={hskFilter === level}
+                        aria-label={`Hide pinyin for HSK ${level} and below`}
+                        className={`min-w-[2.75rem] rounded-lg px-3 py-2 text-base font-semibold transition-colors cursor-pointer ${
+                          hskFilter === level
+                            ? 'bg-jade text-surface shadow-sm'
+                            : 'bg-surface text-ink hover:bg-jade-soft'
+                        }`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-sm leading-snug text-ink-faint">
+                    Pinyin appears on words above HSK {hskFilter}. Hover or press-and-hold any word to peek at its pinyin.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
