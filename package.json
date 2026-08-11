@@ -1,0 +1,29 @@
+{
+  "name": "pinyinlayer",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Paste Chinese text (or upload a PDF/DOCX) and read it with toggleable pinyin, HSK-filtered annotations, tap-to-define popovers, and a personal vocab list.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:data": "node scripts/build-data.mjs"
+  },
+  "dependencies": {
+    "mammoth": "^1.12.1",
+    "pdfjs-dist": "^6.2.108",
+    "pinyin-pro": "^3.28.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "segmentit": "^2.0.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-react": "^6.0.5",
+    "cedict-json": "^1.3.20251213",
+    "lucide-react": "^1.31.0",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.2.1"
+  }
+}

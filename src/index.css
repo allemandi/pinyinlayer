@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/*
+  Design tokens for PinyinLayer.
+  Rice-paper reading surface + ink text, with a single accent taken from
+  Chinese seal chops (印章): a red stamp mark used only for the "save to
+  vocab" action, so it stays meaningful rather than decorative.
+*/
+@theme {
+  --color-paper: #f7f4ec;
+  --color-surface: #fdfbf5;
+  --color-surface-dim: #f1ede2;
+  --color-ink: #201f1c;
+  --color-ink-soft: #6b6559;
+  --color-ink-faint: #a39c8a;
+  --color-rule: #dfd8c6;
+  --color-jade: #4f6f62;
+  --color-jade-soft: #dbe6e0;
+  --color-seal: #b3402a;
+  --color-seal-soft: #f3ddd5;
+
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-reading: "Noto Serif SC", "Songti SC", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rule) transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-jade);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
