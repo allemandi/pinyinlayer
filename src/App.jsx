@@ -8,12 +8,13 @@ import DefinitionPopover from './components/DefinitionPopover.jsx';
 import VocabDrawer from './components/VocabDrawer.jsx';
 import { cleanText } from './lib/cleanText.js';
 import { useVocab } from './hooks/useVocab.js';
+import { useLocalStorage } from './hooks/useLocalStorage.js';
 
 export default function App() {
   const [rawText, setRawText] = useState('');
   const [cleanedText, setCleanedText] = useState('');
-  const [pinyinVisible, setPinyinVisible] = useState(true);
-  const [hskFilter, setHskFilter] = useState('all');
+  const [pinyinVisible, setPinyinVisible] = useLocalStorage('pinyinlayer:pinyin', true);
+  const [hskFilter, setHskFilter] = useLocalStorage('pinyinlayer:hsk', 'all');
   const [expanded, setExpanded] = useState(null);
   const [vocabOpen, setVocabOpen] = useState(false);
   const [popoverTarget, setPopoverTarget] = useState(null);
@@ -28,10 +29,10 @@ export default function App() {
 
   return (
     <div className="flex h-[100dvh] flex-col bg-paper">
-      <header className="flex shrink-0 items-center gap-2 border-b border-rule px-4 py-3 sm:px-6">
-        <Layers size={18} className="text-seal" strokeWidth={2.25} />
-        <h1 className="font-display text-base font-semibold tracking-tight">PinyinLayer</h1>
-        <p className="hidden text-sm text-ink-faint sm:block">Reading assistance, layered.</p>
+      <header className="flex shrink-0 items-center gap-2.5 border-b border-rule bg-surface/80 px-4 py-3.5 sm:px-6">
+        <Layers size={22} className="text-seal" strokeWidth={2.25} />
+        <h1 className="font-display text-lg font-semibold tracking-tight">PinyinLayer</h1>
+        <p className="hidden text-base text-ink-faint sm:block">Reading assistance, layered.</p>
       </header>
 
       <AppLayout

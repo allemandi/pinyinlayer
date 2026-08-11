@@ -66,15 +66,15 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     <>
       <div className="fixed inset-0 z-30" onClick={onClose} />
       <div
-        className="fixed z-40 w-72 rounded-xl border border-rule bg-surface p-4 shadow-xl"
+        className="fixed z-40 w-80 rounded-xl border border-rule bg-surface p-5 shadow-xl"
         style={{ left, top }}
         role="dialog"
         aria-label={`Definition for ${target.text}`}
       >
         <div className="mb-3 flex items-start justify-between gap-2">
           <div>
-            <p className="font-reading text-2xl leading-tight">{target.text}</p>
-            <p className="mt-1 font-mono text-sm text-jade">{pinyinText}</p>
+            <p className="font-reading text-3xl leading-tight">{target.text}</p>
+            <p className="mt-1.5 text-base font-medium text-jade">{pinyinText}</p>
           </div>
           <button
             type="button"
@@ -99,12 +99,12 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
           </button>
         </div>
 
-        {loading && <p className="text-sm text-ink-faint">Looking up…</p>}
+        {loading && <p className="text-base text-ink-faint">Looking up…</p>}
         {!loading && (!senses || senses.length === 0) && (
-          <p className="text-sm text-ink-faint">No definition found.</p>
+          <p className="text-base text-ink-faint">No definition found.</p>
         )}
         {!loading && senses && senses.length > 0 && (
-          <ul className="mb-1 space-y-1.5 text-sm leading-snug text-ink">
+          <ul className="mb-1 space-y-2 text-base leading-snug text-ink">
             {senses.map((sense, i) => (
               <li key={i}>
                 {sense.t && <span className="text-ink-faint">({sense.t}) </span>}
@@ -119,16 +119,16 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
             <button
               type="button"
               onClick={handleTranslate}
-              className="text-sm font-medium text-jade hover:underline"
+              className="text-base font-medium text-jade hover:underline"
             >
               Translate full sentence →
             </button>
           )}
-          {translating && <p className="text-sm text-ink-faint">Translating…</p>}
+          {translating && <p className="text-base text-ink-faint">Translating…</p>}
           {translation && (
-            <p className="text-sm italic leading-snug text-ink-soft">“{translation}”</p>
+            <p className="text-base italic leading-snug text-ink-soft">“{translation}”</p>
           )}
-          {translateError && <p className="text-sm text-seal">{translateError}</p>}
+          {translateError && <p className="text-base text-seal">{translateError}</p>}
         </div>
       </div>
     </>

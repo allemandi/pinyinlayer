@@ -63,11 +63,11 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
         value={rawText}
         onChange={(e) => onChangeRawText(e.target.value)}
         placeholder="粘贴中文文本… (paste Chinese text here, or upload a PDF/DOCX below)"
-        className="min-h-0 flex-1 resize-none bg-transparent p-4 font-reading text-base leading-relaxed text-ink placeholder:font-display placeholder:text-sm placeholder:text-ink-faint focus:outline-none"
+        className="min-h-0 flex-1 resize-none bg-transparent p-4 font-reading text-lg leading-relaxed text-ink placeholder:font-display placeholder:text-base placeholder:text-ink-faint focus:outline-none"
       />
 
       {error && (
-        <p className="border-t border-rule px-4 py-2 text-sm text-seal">{error}</p>
+        <p className="border-t border-rule px-4 py-2 text-base text-seal">{error}</p>
       )}
 
       <div className="flex flex-wrap items-center gap-2 border-t border-rule px-3 py-2">
@@ -82,7 +82,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={busy}
-          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink disabled:opacity-50"
+          className="flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium text-ink-soft transition-colors hover:bg-lavender-soft hover:text-ink disabled:opacity-50"
         >
           {busy ? (
             <LoaderCircle size={15} className="animate-spin" strokeWidth={2.25} />
@@ -98,7 +98,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
             onChangeRawText('');
             onSubmit('');
           }}
-          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+          className="flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium text-ink-soft transition-colors hover:bg-lavender-soft hover:text-ink"
         >
           <Eraser size={15} strokeWidth={2.25} />
           Clear
@@ -108,7 +108,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
           type="button"
           onClick={() => onSubmit(rawText)}
           disabled={!rawText.trim()}
-          className="ml-auto flex items-center gap-1.5 rounded-full bg-jade px-3.5 py-1.5 text-sm font-medium text-surface transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="ml-auto flex items-center gap-2 rounded-full bg-jade px-4 py-2 text-base font-medium text-surface transition-opacity hover:opacity-90 disabled:opacity-40"
         >
           Send to reader
           <ArrowRightCircle size={15} strokeWidth={2.25} />

@@ -20,10 +20,10 @@ export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
         aria-hidden={!isOpen}
       >
         <div className="flex items-center justify-between border-b border-rule px-4 py-3.5">
-          <h2 className="flex items-center gap-2 font-display text-base font-semibold">
-            <Stamp size={17} className="text-seal" />
+          <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
+            <Stamp size={19} className="text-seal" />
             Saved vocab
-            <span className="font-mono text-sm font-normal text-ink-faint">
+            <span className="text-base font-normal text-ink-faint">
               {vocab.length}
             </span>
           </h2>
@@ -39,7 +39,7 @@ export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
 
         <div className="flex-1 overflow-y-auto">
           {vocab.length === 0 ? (
-            <p className="p-6 text-center text-sm leading-relaxed text-ink-faint">
+            <p className="p-6 text-center text-base leading-relaxed text-ink-faint">
               Tap any word in the reader and stamp it to save it here.
             </p>
           ) : (
@@ -47,10 +47,10 @@ export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
               {vocab.map((entry) => (
                 <li key={entry.word} className="flex items-start gap-3 px-4 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-reading text-lg leading-tight">{entry.word}</p>
-                    <p className="font-mono text-xs text-jade">{entry.pinyin}</p>
+                    <p className="font-reading text-xl leading-tight">{entry.word}</p>
+                    <p className="text-base font-medium text-jade">{entry.pinyin}</p>
                     {entry.definitions?.length > 0 && (
-                      <p className="mt-1 text-sm leading-snug text-ink-soft">
+                      <p className="mt-1.5 text-base leading-snug text-ink-soft">
                         {entry.definitions[0]}
                       </p>
                     )}
