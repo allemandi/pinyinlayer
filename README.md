@@ -10,15 +10,11 @@ Minimal Chinese reading assistance with pinyin, HSK filtering, tap-to-define loo
 - **Saved Vocabulary Drawer**: Stamp words to keep them saved locally.
 - **Sentence Translation**: Immediate translation support for full sentences on demand.
 
-## Offline Lookup & Optional Online Translation
+## Offline Lookups, Private Lists, & Optional Online Translation
 
-- **Local Lookup**: Dictionary lookups and HSK word list checks run entirely offline inside your browser — no internet needed.
+- **Local Lookup**: Dictionary lookups and HSK word list checks run entirely offline inside your browser.
+- **Private Lists**: Saved vocabulary lists are stored inside your browser's `LocalStorage`.
 - **Online Translation**: The “Translate full sentence” option in the popover sends your sentence to the public MyMemory Translation API to fetch a translation on demand.
-
-## Data Privacy
-
-- All texts, reading history, and saved vocabulary are stored strictly inside your browser's `LocalStorage`.
-- No analytics, tracking, or user logging is integrated.
 
 ## Quick Start
 
@@ -36,4 +32,6 @@ npm run dev
 - `npm run test` — run minimal local tests
 - `npm run build:data` — regenerate static dictionary data
 
-&copy; 2026 allemandi. All rights reserved.
+## License
+
+MIT
