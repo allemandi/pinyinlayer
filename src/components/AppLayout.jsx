@@ -21,7 +21,7 @@ function Pane({ title, expandKey, expanded, onToggleExpand, children }) {
         aria-label={isExpanded ? `Restore ${title} panel` : `Expand ${title} panel`}
       >
         <span
-          className={`font-display text-sm font-semibold tracking-wide text-ink-soft ${
+          className={`font-display text-base font-semibold tracking-wide text-ink-soft ${
             isMinimized ? 'md:[writing-mode:vertical-rl]' : ''
           }`}
         >

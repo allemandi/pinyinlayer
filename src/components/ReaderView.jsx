@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { tokenizeParagraph } from '../lib/getPinyin.js';
 import hskWords from '../data/hskWords.js';
 
-// Splits a paragraph into sentences on Chinese sentence-ending punctuation,
-// keeping the punctuation attached, so a tapped word can carry its whole
-// sentence into the definition popover for translation.
+const PINYIN_SLOT = 'h-[1.15em]';
+const LONG_PRESS_MS = 450;
+
 function splitSentences(paragraph) {
   const matches = paragraph.match(/[^。！？]*[。！？]+|[^。！？]+$/g) || [paragraph];
   let cursor = 0;
@@ -19,6 +19,12 @@ function getTokenLevel(token) {
   if (hskWords[token.text] !== undefined) return hskWords[token.text];
   const charLevels = token.chars.map((c) => hskWords[c]).filter((l) => l !== undefined);
   return charLevels.length ? Math.min(...charLevels) : undefined;
+}
+
+function shouldShowPinyin(pinyinVisible, hskFilter, level) {
+  if (!pinyinVisible) return false;
+  if (hskFilter === 'all') return true;
+  return level === undefined || level > hskFilter;
 }
 
 async function buildParagraphs(cleanedText) {
@@ -38,8 +44,88 @@ async function buildParagraphs(cleanedText) {
   );
 }
 
+function PinyinSlot({ visible, children, reserveSpace }) {
+  return (
+    <span
+      className={`block text-center text-[0.85rem] font-medium leading-none text-jade transition-opacity ${
+        reserveSpace ? PINYIN_SLOT : ''
+      } ${visible ? 'opacity-100' : reserveSpace ? 'opacity-0' : 'hidden'}`}
+      aria-hidden={!visible}
+    >
+      {children || '\u00A0'}
+    </span>
+  );
+}
+
+function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, onTapToken, onPeekStart, onPeekEnd }) {
+  const longPressFired = useRef(false);
+  const pressTimer = useRef(null);
+
+  const clearPress = useCallback(() => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+  }, []);
+
+  const handlePointerDown = () => {
+    longPressFired.current = false;
+    clearPress();
+    pressTimer.current = setTimeout(() => {
+      longPressFired.current = true;
+      onPeekStart(tokenKey);
+    }, LONG_PRESS_MS);
+  };
+
+  const handlePointerUp = () => {
+    clearPress();
+    onPeekEnd(tokenKey);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        if (longPressFired.current) {
+          e.preventDefault();
+          return;
+        }
+        onTapToken(token, e.currentTarget.getBoundingClientRect());
+      }}
+      onMouseEnter={() => onPeekStart(tokenKey)}
+      onMouseLeave={() => onPeekEnd(tokenKey)}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+      className={`group relative inline-flex items-end gap-px rounded-md px-0.5 align-bottom transition-colors hover:bg-jade-soft/80 active:bg-lavender-soft/70 ${
+        saved ? 'decoration-seal decoration-2 underline underline-offset-[8px]' : ''
+      }`}
+    >
+      {token.chars.map((char, cIndex) => (
+        <span key={cIndex} className="inline-flex flex-col items-center">
+          <PinyinSlot visible={showPinyin} reserveSpace={reservePinyinRow}>
+            {token.pinyin[cIndex]}
+          </PinyinSlot>
+          <span className="font-reading text-[1.4rem] leading-none">{char}</span>
+        </span>
+      ))}
+    </button>
+  );
+}
+
+function PunctuationToken({ text, reservePinyinRow }) {
+  return (
+    <span className="inline-flex flex-col items-center align-bottom">
+      {reservePinyinRow && <PinyinSlot visible={false} reserveSpace />}
+      <span className="font-reading text-[1.4rem] leading-none text-ink-soft">{text}</span>
+    </span>
+  );
+}
+
 export default function ReaderView({ cleanedText, pinyinVisible, hskFilter, onTapToken, isSaved }) {
   const [paragraphs, setParagraphs] = useState([]);
+  const [peekedKeys, setPeekedKeys] = useState(() => new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -55,10 +141,28 @@ export default function ReaderView({ cleanedText, pinyinVisible, hskFilter, onTa
     };
   }, [cleanedText]);
 
+  const handlePeekStart = useCallback((key) => {
+    setPeekedKeys((prev) => {
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
+  }, []);
+
+  const handlePeekEnd = useCallback((key) => {
+    setPeekedKeys((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
+
   if (!cleanedText.trim()) {
     return (
       <div className="flex h-full items-center justify-center p-8 text-center">
-        <p className="max-w-xs text-sm leading-relaxed text-ink-faint">
+        <p className="max-w-sm text-base leading-relaxed text-ink-faint">
           Paste Chinese text or upload a PDF/DOCX on the left, then{' '}
           <span className="font-medium text-ink-soft">send it to the reader</span> to see it
           here — cleaned, paragraphed, and ready to tap through.
@@ -67,48 +171,41 @@ export default function ReaderView({ cleanedText, pinyinVisible, hskFilter, onTa
     );
   }
 
+  const reservePinyinRow = pinyinVisible;
+
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-6">
       {paragraphs.map((tokens, pIndex) => (
-        <p key={pIndex} className="mb-6 text-[1.15rem] leading-[2.4] last:mb-0">
+        <p key={pIndex} className="mb-7 text-[1.4rem] leading-[2.35] last:mb-0">
           {tokens.map((token, tIndex) => {
+            const tokenKey = `${pIndex}-${tIndex}`;
+
             if (!token.isChinese) {
               return (
-                <span key={tIndex} className="text-ink-soft">
-                  {token.text}
-                </span>
+                <PunctuationToken
+                  key={tIndex}
+                  text={token.text}
+                  reservePinyinRow={reservePinyinRow}
+                />
               );
             }
 
             const level = getTokenLevel(token);
-            const showPinyin =
-              pinyinVisible && (hskFilter === 'all' || level === undefined || level > hskFilter);
-            const saved = isSaved(token.text);
+            const persistentPinyin = shouldShowPinyin(pinyinVisible, hskFilter, level);
+            const showPinyin = persistentPinyin || peekedKeys.has(tokenKey);
 
             return (
-              <button
+              <ChineseToken
                 key={tIndex}
-                type="button"
-                onClick={(e) =>
-                  onTapToken(token, e.currentTarget.getBoundingClientRect())
-                }
-                className={`group relative inline-flex items-baseline gap-px rounded px-0.5 align-bottom transition-colors hover:bg-jade-soft/70 ${
-                  saved ? 'decoration-seal decoration-2 underline underline-offset-[6px]' : ''
-                }`}
-              >
-                {token.chars.map((char, cIndex) => (
-                  <span key={cIndex} className="inline-flex flex-col items-center leading-none">
-                    <span
-                      className={`mb-0.5 font-mono text-[0.62rem] text-jade transition-[opacity,height] ${
-                        showPinyin ? 'opacity-100' : 'h-0 opacity-0'
-                      }`}
-                    >
-                      {token.pinyin[cIndex]}
-                    </span>
-                    <span className="font-reading">{char}</span>
-                  </span>
-                ))}
-              </button>
+                token={token}
+                tokenKey={tokenKey}
+                showPinyin={showPinyin}
+                reservePinyinRow={reservePinyinRow}
+                saved={isSaved(token.text)}
+                onTapToken={onTapToken}
+                onPeekStart={handlePeekStart}
+                onPeekEnd={handlePeekEnd}
+              />
             );
           })}
         </p>

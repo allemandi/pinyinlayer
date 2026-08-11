@@ -1,14 +1,14 @@
 // One-time / re-runnable data-build script (not shipped to the browser).
 // Merges CC-CEDICT (definitions) with the Complete HSK Vocabulary dataset
 // (HSK levels) into two lean static JSON files consumed by the app:
-//   src/data/dict.json      -> { "word": [{ t?, p, d:[...] }, ...] }
+//   src/data/dict.json      -> { "word": [{ t?, p, d:[...] }] }
 //   src/data/hskWords.json  -> { "word": 1..6 }
 //
-// Run with: npm run build:data
+// The dictionary is trimmed to HSK vocabulary only — enough for quick
+// "how is this pronounced, what does it mean" scanning without shipping
+// the full 120k-entry CC-CEDICT payload.
 //
-// Sources (redistribution permitted with attribution — see src/data/README.md):
-//   https://github.com/matt-tingen/cedict-json          (CC-CEDICT as JSON, npm dep)
-//   https://github.com/drkameleon/complete-hsk-vocabulary (fetched at build time)
+// Run with: npm run build:data
 import { writeFileSync } from 'node:fs';
 import cedict from '../node_modules/cedict-json/cedict.json' with { type: 'json' };
 
@@ -18,7 +18,6 @@ const HSK_URL =
 console.log('Fetching HSK level data...');
 const hsk = await fetch(HSK_URL).then((res) => res.json());
 
-// --- HSK level lookup: pick the lowest (earliest-learned) 1-6 level found ---
 const levelOf = {};
 for (const entry of hsk) {
   const nums = (entry.l || [])
@@ -30,19 +29,25 @@ for (const entry of hsk) {
   if (levelOf[word] === undefined || best < levelOf[word]) levelOf[word] = best;
 }
 
-// --- Dictionary: group CC-CEDICT senses by simplified headword ---
+// Keep HSK headwords plus any single character that appears in the HSK lists.
+const keepWords = new Set(Object.keys(levelOf));
+for (const word of Object.keys(levelOf)) {
+  for (const char of word) keepWords.add(char);
+}
+
 const dict = {};
 for (const e of cedict) {
   const word = e.simplified;
-  if (!word) continue;
-  const sense = { p: e.pinyin, d: e.english };
+  if (!word || !keepWords.has(word)) continue;
+
+  const english = Array.isArray(e.english) ? e.english[0] : e.english.split(/;\s*/)[0];
+  const sense = { p: e.pinyin, d: [english] };
   if (e.traditional && e.traditional !== word) sense.t = e.traditional;
   (dict[word] ||= []).push(sense);
 }
 
-// Cap senses per word to keep the payload lean.
 for (const word of Object.keys(dict)) {
-  if (dict[word].length > 3) dict[word] = dict[word].slice(0, 3);
+  dict[word] = dict[word].slice(0, 1);
 }
 
 writeFileSync('src/data/dict.json', JSON.stringify(dict));
