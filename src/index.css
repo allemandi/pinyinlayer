@@ -20,6 +20,23 @@
   --font-reading: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", ui-sans-serif, sans-serif;
 }
 
+.dark {
+  --color-paper: #020617;
+  --color-surface: #0f172a;
+  --color-surface-dim: #111827;
+  --color-ink: #e2e8f0;
+  --color-ink-soft: #94a3b8;
+  --color-ink-faint: #64748b;
+  --color-rule: #334155;
+  --color-jade: #7dd3fc;
+  --color-jade-soft: #0f172a;
+  --color-seal: #fb7185;
+  --color-seal-soft: #172554;
+  --color-lavender: #c4b0e8;
+  --color-lavender-soft: #1e293b;
+  --color-butter: #fef3c7;
+}
+
 html,
 body,
 #root {

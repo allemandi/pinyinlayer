@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { tokenizeParagraph } from '../lib/getPinyin.js';
-import hskWords from '../data/hskWords.js';
+import { tokenizeParagraph } from '../utils/getPinyin.js';
+import { shouldShowPinyin } from '../utils/pinyinVisibility.js';
 
 const PINYIN_SLOT = 'h-[1.15em]';
 const LONG_PRESS_MS = 450;
@@ -13,18 +13,6 @@ function splitSentences(paragraph) {
     cursor += text.length;
     return { text, start, end: cursor };
   });
-}
-
-function getTokenLevel(token) {
-  if (hskWords[token.text] !== undefined) return hskWords[token.text];
-  const charLevels = token.chars.map((c) => hskWords[c]).filter((l) => l !== undefined);
-  return charLevels.length ? Math.min(...charLevels) : undefined;
-}
-
-function shouldShowPinyin(pinyinVisible, hskFilter, level) {
-  if (!pinyinVisible) return false;
-  if (hskFilter === 'all') return true;
-  return level === undefined || level > hskFilter;
 }
 
 async function buildParagraphs(cleanedText) {
@@ -190,8 +178,7 @@ export default function ReaderView({ cleanedText, pinyinVisible, hskFilter, onTa
               );
             }
 
-            const level = getTokenLevel(token);
-            const persistentPinyin = shouldShowPinyin(pinyinVisible, hskFilter, level);
+            const persistentPinyin = shouldShowPinyin(pinyinVisible, hskFilter, token);
             const showPinyin = persistentPinyin || peekedKeys.has(tokenKey);
 
             return (

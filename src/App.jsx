@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { Layers } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Layers, Moon, Sun } from 'lucide-react';
 import AppLayout from './components/AppLayout.jsx';
 import InputPanel from './components/InputPanel.jsx';
 import Controls from './components/Controls.jsx';
 import ReaderView from './components/ReaderView.jsx';
 import DefinitionPopover from './components/DefinitionPopover.jsx';
 import VocabDrawer from './components/VocabDrawer.jsx';
-import { cleanText } from './lib/cleanText.js';
+import { cleanText } from './utils/cleanText.js';
 import { useVocab } from './hooks/useVocab.js';
 import { useLocalStorage } from './hooks/useLocalStorage.js';
 
@@ -15,9 +15,14 @@ export default function App() {
   const [cleanedText, setCleanedText] = useState('');
   const [pinyinVisible, setPinyinVisible] = useLocalStorage('pinyinlayer:pinyin', true);
   const [hskFilter, setHskFilter] = useLocalStorage('pinyinlayer:hsk', 'all');
+  const [themeMode, setThemeMode] = useLocalStorage('pinyinlayer:theme', 'light');
   const [expanded, setExpanded] = useState(null);
   const [vocabOpen, setVocabOpen] = useState(false);
   const [popoverTarget, setPopoverTarget] = useState(null);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', themeMode === 'dark');
+  }, [themeMode]);
 
   const { vocab, toggle, remove, isSaved } = useVocab();
 
@@ -28,11 +33,26 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-paper">
-      <header className="flex shrink-0 items-center gap-2.5 border-b border-rule bg-surface/80 px-4 py-3.5 sm:px-6">
-        <Layers size={22} className="text-seal" strokeWidth={2.25} />
-        <h1 className="font-display text-lg font-semibold tracking-tight">PinyinLayer</h1>
-        <p className="hidden text-base text-ink-faint sm:block">Reading assistance, layered.</p>
+    <div className="flex h-[100dvh] flex-col bg-paper dark:bg-slate-950">
+      <header className="flex flex-col gap-4 border-b border-rule bg-surface px-4 py-3.5 shadow-sm shadow-black/5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-jade-soft text-jade shadow-inner shadow-black/10">
+            <Layers size={22} />
+          </div>
+          <div>
+            <h1 className="font-display text-lg font-semibold tracking-tight text-ink">PinyinLayer</h1>
+            <p className="text-sm text-ink-faint">Reading assistance, layered.</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
+          className="inline-flex items-center gap-2 rounded-full border border-rule bg-surface px-4 py-2 text-sm font-semibold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98]"
+        >
+          {themeMode === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          {themeMode === 'dark' ? 'Light mode' : 'Dark mode'}
+        </button>
       </header>
 
       <AppLayout
