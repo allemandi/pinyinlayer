@@ -4,15 +4,72 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="PinyinLayer — paste Chinese text and read it with toggleable pinyin, HSK filtering, tap-to-define popovers, and a personal vocab list." />
+
+    <!-- Primary SEO Meta Tags -->
+    <title>PinyinLayer — Minimalist Chinese Reading Assistant with Pinyin & HSK</title>
+    <meta name="title" content="PinyinLayer — Minimalist Chinese Reading Assistant with Pinyin & HSK" />
+    <meta name="description" content="PinyinLayer is a clean, offline-first Chinese reading assistant. Paste Chinese text, toggle pinyin, filter by HSK vocabulary level, tap to instantly view dictionary definitions, and build your vocabulary list entirely privately." />
+    <meta name="keywords" content="Chinese reading assistant, learn Chinese, Pinyin tool, HSK reader, Chinese dictionary offline, Chinese parser, study Mandarin" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://pinyinlayer.netlify.app/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pinyinlayer.netlify.app/" />
+    <meta property="og:title" content="PinyinLayer — Minimalist Chinese Reading Assistant with Pinyin & HSK" />
+    <meta property="og:description" content="Paste Chinese text and read comfortably with toggleable pinyin, adaptive HSK filtering, offline tap-to-define dictionary definitions, and custom vocabulary collection." />
+    <meta property="og:image" content="https://pinyinlayer.netlify.app/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/svg+xml" />
+    <meta property="og:site_name" content="PinyinLayer" />
+
+    <!-- Twitter / X -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://pinyinlayer.netlify.app/" />
+    <meta property="twitter:title" content="PinyinLayer — Minimalist Chinese Reading Assistant with Pinyin & HSK" />
+    <meta property="twitter:description" content="Paste Chinese text and read comfortably with toggleable pinyin, adaptive HSK filtering, offline tap-to-define dictionary definitions, and custom vocabulary collection." />
+    <meta property="twitter:image" content="https://pinyinlayer.netlify.app/og-image.svg" />
+
     <meta name="theme-color" content="#FFF8FB" />
-    <title>PinyinLayer</title>
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Schema.org JSON-LD Structured Data for WebApplication -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "PinyinLayer",
+        "url": "https://pinyinlayer.netlify.app/",
+        "description": "Minimal Chinese reading assistance with toggleable pinyin, HSK filtering, offline tap-to-define lookup, and private saved vocab list drawer.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires HTML5 compatible browser.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "allemandi"
+        },
+        "featureList": [
+          "Interactive Pinyin layer toggling",
+          "HSK-filtered annotations (HSK 1-6)",
+          "Tap-to-define offline lookups via local dictionary",
+          "Saved Vocabulary list stored locally inside the browser",
+          "On-demand sentence translation"
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
