@@ -16,6 +16,7 @@ export default function App() {
   const [cleanedText, setCleanedText] = useState('');
   const [pinyinVisible, setPinyinVisible] = useLocalStorage('pinyinlayer:pinyin', true);
   const [hskFilter, setHskFilter] = useLocalStorage('pinyinlayer:hsk', 'all');
+  const [charFormat, setCharFormat] = useLocalStorage('pinyinlayer:charFormat', 'simplified');
   const [themeMode, setThemeMode] = useLocalStorage('pinyinlayer:theme', 'light');
   const [expanded, setExpanded] = useState(null);
   const [vocabOpen, setVocabOpen] = useState(false);
@@ -53,7 +54,7 @@ export default function App() {
             onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
             title={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-sm"
+            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
           >
             {themeMode === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
             <span>{themeMode === 'dark' ? 'Light' : 'Dark'}</span>
@@ -64,7 +65,7 @@ export default function App() {
             onClick={() => setHelpOpen(true)}
             title="Help & Information"
             aria-label="Help & Information"
-            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-sm"
+            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
           >
             <HelpCircle size={14} />
             <span>Help</span>
@@ -85,6 +86,7 @@ export default function App() {
             <div className="min-h-0 flex-1">
               <ReaderView
                 cleanedText={cleanedText}
+                charFormat={charFormat}
                 pinyinVisible={pinyinVisible}
                 hskFilter={hskFilter}
                 onTapToken={handleTapToken}
@@ -96,6 +98,8 @@ export default function App() {
               onTogglePinyin={() => setPinyinVisible((v) => !v)}
               hskFilter={hskFilter}
               onChangeHskFilter={setHskFilter}
+              charFormat={charFormat}
+              onChangeCharFormat={setCharFormat}
               vocabCount={vocab.length}
               onOpenVocab={() => setVocabOpen(true)}
             />

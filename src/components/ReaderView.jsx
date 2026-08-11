@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { tokenizeParagraph } from '../utils/getPinyin.js';
 import { shouldShowPinyin } from '../utils/pinyinVisibility.js';
+import { convertTextAsync, convertWordAsync } from '../utils/chineseConversion.js';
 
 const PINYIN_SLOT = 'h-[1.15em]';
 const LONG_PRESS_MS = 450;
@@ -15,21 +16,47 @@ function splitSentences(paragraph) {
   });
 }
 
-async function buildParagraphs(cleanedText) {
-  const blocks = cleanedText.split(/\n{2,}/).filter(Boolean);
-  return Promise.all(
-    blocks.map(async (paragraph) => {
-      const sentences = splitSentences(paragraph);
-      const tokens = await tokenizeParagraph(paragraph);
-      let offset = 0;
-      return tokens.map((token) => {
+async function buildParagraphs(cleanedText, charFormat) {
+  // If formatting to simplified or traditional, we do tokenization on Simplified text for best segmentation accuracy.
+  const segmentingFormat = charFormat === 'original' ? 'original' : 'simplified';
+  const processedText = await convertTextAsync(cleanedText, segmentingFormat);
+
+  const blocks = processedText.split(/\n{2,}/).filter(Boolean);
+  const paragraphPromises = blocks.map(async (paragraph) => {
+    const sentences = splitSentences(paragraph);
+    const tokens = await tokenizeParagraph(paragraph);
+    let offset = 0;
+
+    return Promise.all(
+      tokens.map(async (token) => {
         const start = offset;
         offset += token.text.length;
         const sentence = sentences.find((s) => start >= s.start && start < s.end);
-        return { ...token, sentence: sentence ? sentence.text : paragraph };
-      });
-    })
-  );
+        const tokenSentence = sentence ? sentence.text : paragraph;
+
+        // If formatting to Traditional, convert the Simplified token/sentence back to Traditional Chinese
+        if (charFormat === 'traditional') {
+          const tradText = await convertWordAsync(token.text, 'traditional');
+          const tradChars = await Promise.all(token.chars.map(c => convertWordAsync(c, 'traditional')));
+          const tradSentence = await convertTextAsync(tokenSentence, 'traditional');
+
+          return {
+            ...token,
+            text: tradText,
+            chars: tradChars,
+            sentence: tradSentence,
+          };
+        }
+
+        return {
+          ...token,
+          sentence: tokenSentence,
+        };
+      })
+    );
+  });
+
+  return Promise.all(paragraphPromises);
 }
 
 function PinyinSlot({ visible, children, reserveSpace }) {
@@ -111,7 +138,7 @@ function PunctuationToken({ text, reservePinyinRow }) {
   );
 }
 
-export default function ReaderView({ cleanedText, pinyinVisible, hskFilter, onTapToken, isSaved }) {
+export default function ReaderView({ cleanedText, charFormat, pinyinVisible, hskFilter, onTapToken, isSaved }) {
   const [paragraphs, setParagraphs] = useState([]);
   const [peekedKeys, setPeekedKeys] = useState(() => new Set());
 
@@ -121,13 +148,13 @@ export default function ReaderView({ cleanedText, pinyinVisible, hskFilter, onTa
       setParagraphs([]);
       return;
     }
-    buildParagraphs(cleanedText).then((result) => {
+    buildParagraphs(cleanedText, charFormat).then((result) => {
       if (!cancelled) setParagraphs(result);
     });
     return () => {
       cancelled = true;
     };
-  }, [cleanedText]);
+  }, [cleanedText, charFormat]);
 
   const handlePeekStart = useCallback((key) => {
     setPeekedKeys((prev) => {
