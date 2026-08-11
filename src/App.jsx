@@ -61,9 +61,18 @@ export default function App() {
         expanded={expanded}
         onToggleExpand={setExpanded}
         left={
+          <InputPanel rawText={rawText} onChangeRawText={setRawText} onSubmit={handleSubmit} />
+        }
+        right={
           <div className="flex h-full min-h-0 flex-col">
             <div className="min-h-0 flex-1">
-              <InputPanel rawText={rawText} onChangeRawText={setRawText} onSubmit={handleSubmit} />
+              <ReaderView
+                cleanedText={cleanedText}
+                pinyinVisible={pinyinVisible}
+                hskFilter={hskFilter}
+                onTapToken={handleTapToken}
+                isSaved={isSaved}
+              />
             </div>
             <Controls
               pinyinVisible={pinyinVisible}
@@ -74,15 +83,6 @@ export default function App() {
               onOpenVocab={() => setVocabOpen(true)}
             />
           </div>
-        }
-        right={
-          <ReaderView
-            cleanedText={cleanedText}
-            pinyinVisible={pinyinVisible}
-            hskFilter={hskFilter}
-            onTapToken={handleTapToken}
-            isSaved={isSaved}
-          />
         }
       />
 
