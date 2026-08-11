@@ -43,7 +43,7 @@ export default function HelpModal({ isOpen, onClose }) {
             <div className="flex items-center gap-2">
               <HelpCircle size={20} className="text-jade" />
               <h2 id="help-modal-title" className="font-display text-base font-bold text-ink dark:text-slate-100">
-                PinyinLayer Guide
+                PinyinLayer
               </h2>
             </div>
             <button
@@ -60,7 +60,7 @@ export default function HelpModal({ isOpen, onClose }) {
           <div className="space-y-4 text-xs sm:text-sm leading-relaxed text-ink-soft dark:text-slate-300">
             <div className="rounded-2xl border border-rule/40 bg-surface-dim/40 p-3.5 dark:border-slate-800/40 dark:bg-slate-900/40">
               <p>
-                <strong>PinyinLayer</strong> is a minimalist Chinese reading assistant featuring dynamic pinyin, HSK filtering, tap-to-define lookup, and a saved vocab drawer.
+                Minimal Chinese reading assistance with pinyin, HSK filtering, tap-to-define lookup, and a saved vocab drawer.
               </p>
             </div>
 
@@ -68,12 +68,12 @@ export default function HelpModal({ isOpen, onClose }) {
               <div className="flex gap-2.5">
                 <Globe size={18} className="mt-0.5 shrink-0 text-jade" />
                 <div>
-                  <h3 className="font-semibold text-ink dark:text-slate-100">Offline Lookup & Optional Online Translation</h3>
+                  <h3 className="font-semibold text-ink dark:text-slate-100">Offline Lookups, Private Lists, & Optional Online Translation</h3>
                   <p className="mt-1 text-xs">
-                    Dictionary lookups and HSK word list checks run entirely offline inside your browser — no internet needed.
+                    Dictionary lookups and HSK word list checks run entirely offline inside your browser.
                   </p>
-                  <p className="mt-1.5 text-xs">
-                    However, the “Translate full sentence” option in the popover sends your sentence to the public MyMemory Translation API to fetch a translation on demand.
+                  <p className="mt-1 text-xs">
+                    Saved vocabulary lists are stored inside your browser's LocalStorage.
                   </p>
                 </div>
               </div>
@@ -85,7 +85,7 @@ export default function HelpModal({ isOpen, onClose }) {
                 <div>
                   <h3 className="font-semibold text-ink dark:text-slate-100">Data Privacy</h3>
                   <p className="mt-1 text-xs">
-                    All texts, reading history, and saved vocabulary are stored strictly inside your browser's <code>LocalStorage</code>. No analytics, tracking, or user logging is integrated.
+                    The “Translate full sentence” option in the popover sends your sentence to the public MyMemory Translation API to fetch a translation on demand.
                   </p>
                 </div>
               </div>
