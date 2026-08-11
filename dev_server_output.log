@@ -1,0 +1,10 @@
+
+> pinyinlayer@0.1.0 dev
+> vite
+
+
+  VITE v8.2.1  ready in 393 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+7:33:02 PM [vite] (client) hmr update /src/index.css, /src/components/ReaderView.jsx, /src/components/DefinitionPopover.jsx
