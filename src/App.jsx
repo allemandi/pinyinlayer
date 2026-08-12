@@ -29,7 +29,13 @@ export default function App() {
 
   const { vocab, toggle, remove, isSaved } = useVocab();
 
-  const handleSubmit = (text) => setCleanedText(cleanText(text));
+  const handleSubmit = (text) => {
+    const cleaned = cleanText(text);
+    setCleanedText(cleaned);
+    if (cleaned.trim()) {
+      setExpanded('right');
+    }
+  };
 
   const handleTapToken = (token, rect) => {
     setPopoverTarget({ text: token.text, pinyin: token.pinyin, sentence: token.sentence, rect });
@@ -107,9 +113,8 @@ export default function App() {
         }
       />
 
-      <footer className="flex shrink-0 flex-col items-center justify-center gap-1.5 border-t border-rule bg-surface/95 px-4 py-3 text-xs text-ink-faint dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:gap-4 sm:px-6">
-        <span>&copy; 2026 allemandi</span>
-        <span className="hidden sm:inline text-rule dark:text-slate-800">|</span>
+      <footer className="flex shrink-0 flex-row items-center justify-center gap-6 border-t border-rule bg-surface/95 px-4 py-3 text-xs text-ink-faint dark:border-slate-800 dark:bg-slate-950 sm:px-6">
+        <span>&copy; {new Date().getFullYear()} allemandi</span>
         <a
           href="https://github.com/allemandi/pinyinlayer"
           target="_blank"

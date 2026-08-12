@@ -6,12 +6,12 @@ function Pane({ title, expandKey, expanded, onToggleExpand, children }) {
 
   return (
     <section
-      className={`flex flex-col overflow-hidden rounded-2xl border border-rule bg-surface transition-all duration-300 ease-out ${
+      className={`group flex flex-col overflow-hidden rounded-2xl border bg-surface transition-all duration-300 ease-out ${
         isMinimized
-          ? 'h-14 shrink-0 md:h-full md:w-14 md:flex-[0_0_3.5rem]'
+          ? 'h-14 shrink-0 md:h-full md:w-14 md:flex-[0_0_3.5rem] border-rule dark:border-slate-800 shadow-sm hover:shadow-md hover:border-jade/40 dark:hover:border-jade/40'
           : isExpanded
-          ? 'min-h-0 flex-1 md:flex-[5]'
-          : 'min-h-0 flex-1 md:flex-[3]'
+          ? 'min-h-0 flex-1 md:flex-[5] border-jade/30 dark:border-jade/40 shadow-lg shadow-jade/5 dark:shadow-black/20'
+          : 'min-h-0 flex-1 md:flex-[3] border-rule dark:border-slate-800 shadow-md shadow-black/5'
       }`}
     >
       <button
@@ -20,18 +20,20 @@ function Pane({ title, expandKey, expanded, onToggleExpand, children }) {
         className={`flex shrink-0 items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-surface-dim cursor-pointer ${
           isMinimized
             ? 'h-full w-full justify-between md:h-full md:w-14 md:flex-col md:justify-center md:gap-2 md:py-4'
-            : 'w-full justify-between border-b border-rule'
+            : 'w-full justify-between border-b border-rule dark:border-slate-800'
         }`}
         aria-label={isExpanded ? `Restore ${title} panel` : `Expand ${title} panel`}
       >
         <span
-          className={`font-display text-base font-semibold tracking-wide text-ink-soft transition-all duration-300 ${
-            isMinimized ? 'md:[writing-mode:vertical-rl] md:rotate-180' : ''
+          className={`font-display text-base font-semibold tracking-wide transition-all duration-300 ${
+            isMinimized
+              ? 'text-ink-faint group-hover:text-jade md:[writing-mode:vertical-rl] md:rotate-180'
+              : 'text-ink-soft'
           }`}
         >
           {title}
         </span>
-        <span className="text-ink-faint">
+        <span className={`transition-all duration-300 ${isMinimized ? 'text-ink-faint group-hover:text-jade group-hover:scale-110' : 'text-ink-faint'}`}>
           {isExpanded ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
         </span>
       </button>

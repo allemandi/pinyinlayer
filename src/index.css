@@ -2,39 +2,39 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-paper: #fff8fb;
-  --color-surface: #fffcfd;
-  --color-surface-dim: #f5eef8;
-  --color-ink: #4a4458;
-  --color-ink-soft: #756d88;
-  --color-ink-faint: #b0a8be;
-  --color-rule: #eadcf0;
-  --color-jade: #7ec8a8;
-  --color-jade-soft: #dff5ea;
-  --color-seal: #f098ae;
+  --color-paper: #fffcfd;
+  --color-surface: #ffffff;
+  --color-surface-dim: #f6edf9;
+  --color-ink: #2c2538;
+  --color-ink-soft: #534b62;
+  --color-ink-faint: #817892;
+  --color-rule: #dfcfe6;
+  --color-jade: #1d8f5b;
+  --color-jade-soft: #e1f6eb;
+  --color-seal: #e34c71;
   --color-seal-soft: #fde8ef;
-  --color-lavender: #c4b0e8;
-  --color-lavender-soft: #eee6fb;
-  --color-butter: #fff0b3;
+  --color-lavender: #8a65c9;
+  --color-lavender-soft: #eedeff;
+  --color-butter: #fef08a;
 
   --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-reading: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", ui-sans-serif, sans-serif;
 }
 
 .dark {
-  --color-paper: #020617;
+  --color-paper: #090d16;
   --color-surface: #0f172a;
-  --color-surface-dim: #111827;
-  --color-ink: #e2e8f0;
-  --color-ink-soft: #94a3b8;
-  --color-ink-faint: #64748b;
-  --color-rule: #334155;
-  --color-jade: #7dd3fc;
-  --color-jade-soft: #0f172a;
-  --color-seal: #fb7185;
-  --color-seal-soft: #172554;
-  --color-lavender: #c4b0e8;
-  --color-lavender-soft: #1e293b;
+  --color-surface-dim: #1e293b;
+  --color-ink: #f8fafc;
+  --color-ink-soft: #cbd5e1;
+  --color-ink-faint: #94a3b8;
+  --color-rule: #475569;
+  --color-jade: #38bdf8;
+  --color-jade-soft: #0c4a6e;
+  --color-seal: #fda4af;
+  --color-seal-soft: #881337;
+  --color-lavender: #c084fc;
+  --color-lavender-soft: #581c87;
   --color-butter: #fef3c7;
 }
 
