@@ -113,9 +113,8 @@ export default function App() {
         }
       />
 
-      <footer className="flex shrink-0 flex-col items-center justify-center gap-1.5 border-t border-rule bg-surface/95 px-4 py-3 text-xs text-ink-faint dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:gap-4 sm:px-6">
+      <footer className="flex shrink-0 flex-row items-center justify-between gap-4 border-t border-rule bg-surface/95 px-4 py-3 text-xs text-ink-faint dark:border-slate-800 dark:bg-slate-950 sm:px-6">
         <span>&copy; 2026 allemandi</span>
-        <span className="hidden sm:inline text-rule dark:text-slate-800">|</span>
         <a
           href="https://github.com/allemandi/pinyinlayer"
           target="_blank"
