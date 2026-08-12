@@ -112,7 +112,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={busy}
-          className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer h-9"
         >
           {busy ? (
             <LoaderCircle size={14} className="animate-spin" strokeWidth={2.25} />
@@ -135,7 +135,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
             onChangeRawText('');
             onSubmit('');
           }}
-          className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer"
+          className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.97] cursor-pointer h-9"
         >
           <Eraser size={14} strokeWidth={2.25} />
           <span>Clear</span>
@@ -145,7 +145,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
           type="button"
           onClick={() => onSubmit(rawText)}
           disabled={!rawText.trim()}
-          className="ml-auto flex items-center gap-1.5 sm:gap-2 rounded-full bg-jade px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-surface transition duration-150 ease-out hover:bg-jade/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+          className="ml-auto flex items-center gap-1.5 sm:gap-2 rounded-full bg-jade px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-surface transition duration-150 ease-out hover:bg-jade/90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer h-9"
         >
           <span>Send to reader</span>
           <ArrowRightCircle size={14} strokeWidth={2.25} />

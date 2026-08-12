@@ -113,7 +113,7 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       onPointerLeave={handlePointerUp}
-      className={`group relative inline-flex items-end gap-px rounded-md px-0.5 align-bottom transition-colors hover:bg-jade-soft/80 active:bg-lavender-soft/70 ${
+      className={`group relative inline-flex items-end gap-px rounded-md px-1 py-0.5 align-bottom transition-all duration-150 cursor-pointer hover:bg-jade-soft/90 active:bg-lavender-soft/80 hover:shadow-xs ${
         saved ? 'decoration-seal decoration-2 underline underline-offset-[8px]' : ''
       }`}
     >

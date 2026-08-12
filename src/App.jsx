@@ -113,8 +113,8 @@ export default function App() {
         }
       />
 
-      <footer className="flex shrink-0 flex-row items-center justify-between gap-4 border-t border-rule bg-surface/95 px-4 py-3 text-xs text-ink-faint dark:border-slate-800 dark:bg-slate-950 sm:px-6">
-        <span>&copy; 2026 allemandi</span>
+      <footer className="flex shrink-0 flex-row items-center justify-center gap-6 border-t border-rule bg-surface/95 px-4 py-3 text-xs text-ink-faint dark:border-slate-800 dark:bg-slate-950 sm:px-6">
+        <span>&copy; {new Date().getFullYear()} allemandi</span>
         <a
           href="https://github.com/allemandi/pinyinlayer"
           target="_blank"
