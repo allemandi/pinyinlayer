@@ -29,7 +29,13 @@ export default function App() {
 
   const { vocab, toggle, remove, isSaved } = useVocab();
 
-  const handleSubmit = (text) => setCleanedText(cleanText(text));
+  const handleSubmit = (text) => {
+    const cleaned = cleanText(text);
+    setCleanedText(cleaned);
+    if (cleaned.trim()) {
+      setExpanded('right');
+    }
+  };
 
   const handleTapToken = (token, rect) => {
     setPopoverTarget({ text: token.text, pinyin: token.pinyin, sentence: token.sentence, rect });

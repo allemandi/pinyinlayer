@@ -3,8 +3,8 @@
 > vite
 
 
-  VITE v8.2.1  ready in 393 ms
+  VITE v8.2.1  ready in 444 ms
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
-7:33:02 PM [vite] (client) hmr update /src/index.css, /src/components/ReaderView.jsx, /src/components/DefinitionPopover.jsx
+9:30:59 AM [vite] (client) [optimizer] bundling dependencies...
