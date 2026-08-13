@@ -20,6 +20,17 @@ async function run() {
   assert.strictEqual(shouldShowPinyin(true, sampleLevel, token), false);
   assert.strictEqual(shouldShowPinyin(true, sampleLevel - 1, token), true);
 
+  // HSK Filter with Traditional / Original (using simpText and simpChars)
+  const traditionalToken = {
+    text: '測試',
+    chars: ['測', '試'],
+    simpText: '测试',
+    simpChars: ['测', '试']
+  };
+  // 测试 / 測試 is HSK 4 ("测试":4)
+  assert.strictEqual(shouldShowPinyin(true, 4, traditionalToken), false, 'Should hide pinyin for Traditional HSK 4 word when HSK filter is 4');
+  assert.strictEqual(shouldShowPinyin(true, 3, traditionalToken), true, 'Should show pinyin for Traditional HSK 4 word when HSK filter is 3');
+
   // Character formatting & conversion tests
   const simplifiedInput = '这是一个繁体字测试的句子';
   const traditionalInput = '這是一個繁體字測試的句子';
