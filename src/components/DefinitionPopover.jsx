@@ -3,6 +3,7 @@ import { Stamp, X } from 'lucide-react';
 import { lookupWord } from '../utils/lookupWord.js';
 import { translateSentence } from '../utils/translateSentence.js';
 import { convertWordAsync } from '../utils/chineseConversion.js';
+import hskWords from '../data/hskWords.js';
 
 const WIDTH = 380; // Desktop width for popover
 const MARGIN = 16;
@@ -130,10 +131,15 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
             </h2>
             <p className="mt-1 text-xs font-semibold uppercase tracking-[0.24em] text-ink-faint">
               {target.text.length > 1 ? 'phrase' : 'character'}
+              {(() => {
+                const checkedText = simpWord || target.text;
+                const hskLevel = hskWords[checkedText];
+                return hskLevel !== undefined ? ` • HSK ${hskLevel}` : '';
+              })()}
             </p>
             <p className="mt-2.5 text-base font-semibold text-jade">{pinyinText}</p>
           </div>
-          <div className="flex shrink-0 gap-1.5">
+          <div className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
               onClick={() =>
@@ -146,22 +152,26 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
               }
               aria-label={saved ? 'Remove from vocab list' : 'Save to vocab list'}
               aria-pressed={saved}
-              className="rounded-full border border-rule bg-surface p-2 text-ink-faint transition hover:bg-seal-soft hover:text-seal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer"
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer ${
+                saved
+                  ? 'bg-seal-soft border-seal/30 text-seal shadow-xs'
+                  : 'bg-surface border-rule text-ink-soft hover:bg-seal-soft hover:text-seal'
+              }`}
             >
               <Stamp
-                size={18}
-                strokeWidth={2}
-                className={saved ? 'text-seal' : 'text-ink-faint'}
+                size={14}
+                strokeWidth={2.25}
                 fill={saved ? 'currentColor' : 'none'}
               />
+              <span>{saved ? 'Saved' : 'Save'}</span>
             </button>
             <button
               type="button"
               onClick={onClose}
               aria-label="Close definition popover"
-              className="rounded-full border border-rule bg-surface p-2 text-ink-faint transition hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer"
+              className="rounded-full border border-rule bg-surface p-1.5 text-ink-faint transition hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer"
             >
-              <X size={18} strokeWidth={2.25} />
+              <X size={16} strokeWidth={2.25} />
             </button>
           </div>
         </div>

@@ -45,12 +45,27 @@ async function buildParagraphs(cleanedText, charFormat) {
             text: tradText,
             chars: tradChars,
             sentence: tradSentence,
+            simpText: token.text,
+            simpChars: token.chars,
+          };
+        }
+
+        if (charFormat === 'original') {
+          const simpText = await convertWordAsync(token.text, 'simplified');
+          const simpChars = await Promise.all(token.chars.map(c => convertWordAsync(c, 'simplified')));
+          return {
+            ...token,
+            sentence: tokenSentence,
+            simpText,
+            simpChars,
           };
         }
 
         return {
           ...token,
           sentence: tokenSentence,
+          simpText: token.text,
+          simpChars: token.chars,
         };
       })
     );
