@@ -43,6 +43,18 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Listen for Escape key to close the definition popover
+  useEffect(() => {
+    if (!target) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [target, onClose]);
+
   useEffect(() => {
     if (!target) return;
     let cancelled = false;

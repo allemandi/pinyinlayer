@@ -156,16 +156,29 @@ function PunctuationToken({ text, reservePinyinRow }) {
 export default function ReaderView({ cleanedText, charFormat, pinyinVisible, hskFilter, onTapToken, isSaved }) {
   const [paragraphs, setParagraphs] = useState([]);
   const [peekedKeys, setPeekedKeys] = useState(() => new Set());
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     if (!cleanedText.trim()) {
       setParagraphs([]);
+      setLoading(false);
       return;
     }
-    buildParagraphs(cleanedText, charFormat).then((result) => {
-      if (!cancelled) setParagraphs(result);
-    });
+    setLoading(true);
+    buildParagraphs(cleanedText, charFormat)
+      .then((result) => {
+        if (!cancelled) {
+          setParagraphs(result);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to segment text:', err);
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -197,6 +210,21 @@ export default function ReaderView({ cleanedText, charFormat, pinyinVisible, hsk
           <span className="font-medium text-ink-soft">send it to the reader</span> to see it
           here — cleaned, paragraphed, and ready to tap through.
         </p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="h-full overflow-y-auto p-4 sm:p-6 space-y-6 animate-pulse" aria-busy="true" aria-live="polite">
+        {[1, 2, 3].map((p) => (
+          <div key={p} className="space-y-3">
+            <div className="h-4 bg-jade-soft/50 dark:bg-slate-800 rounded-md w-11/12" />
+            <div className="h-4 bg-jade-soft/50 dark:bg-slate-800 rounded-md w-full" />
+            <div className="h-4 bg-jade-soft/50 dark:bg-slate-800 rounded-md w-10/12" />
+          </div>
+        ))}
+        <p className="text-center text-xs text-ink-faint pt-4">Segmenting and loading annotations...</p>
       </div>
     );
   }
