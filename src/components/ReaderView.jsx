@@ -206,8 +206,8 @@ export default function ReaderView({ cleanedText, charFormat, pinyinVisible, hsk
     return (
       <div className="flex h-full items-center justify-center p-8 text-center">
         <p className="max-w-sm text-base leading-relaxed text-ink-faint">
-          Paste Chinese text or upload a PDF/DOCX on the left, then{' '}
-          <span className="font-medium text-ink-soft">send it to the reader</span> to see it
+          Paste Chinese text or upload a PDF/DOCX in the <span className="font-semibold text-ink-soft">Input</span> panel, then click{' '}
+          <span className="font-semibold text-ink-soft">Send to reader</span> to see it
           here — cleaned, paragraphed, and ready to tap through.
         </p>
       </div>

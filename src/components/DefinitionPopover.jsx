@@ -3,6 +3,7 @@ import { Stamp, X } from 'lucide-react';
 import { lookupWord } from '../utils/lookupWord.js';
 import { translateSentence } from '../utils/translateSentence.js';
 import { convertWordAsync } from '../utils/chineseConversion.js';
+import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import hskWords from '../data/hskWords.js';
 
 const WIDTH = 380; // Desktop width for popover
@@ -44,16 +45,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
   }, []);
 
   // Listen for Escape key to close the definition popover
-  useEffect(() => {
-    if (!target) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [target, onClose]);
+  useEscapeKey(onClose, Boolean(target));
 
   useEffect(() => {
     if (!target) return;
