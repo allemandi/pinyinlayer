@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
 import { X, Trash2, Stamp } from 'lucide-react';
+import { useEscapeKey } from '../hooks/useEscapeKey.js';
 
 /**
  * Slide-out drawer (right on desktop, bottom sheet on mobile) listing the
@@ -7,16 +7,7 @@ import { X, Trash2, Stamp } from 'lucide-react';
  */
 export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
   // Listen for Escape key to close the vocab drawer
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  useEscapeKey(onClose, isOpen);
 
   return (
     <>

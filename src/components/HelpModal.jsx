@@ -1,24 +1,11 @@
-import { useEffect } from 'react';
 import { X, Shield, Globe, HelpCircle } from 'lucide-react';
+import { useEscapeKey } from '../hooks/useEscapeKey.js';
 
 /**
  * HelpModal displays concise, direct information about PinyinLayer.
  */
 export default function HelpModal({ isOpen, onClose }) {
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]);
+  useEscapeKey(onClose, isOpen);
 
   if (!isOpen) return null;
 

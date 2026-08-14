@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Eye, EyeOff, BookMarked, Settings, X } from 'lucide-react';
+import { useEscapeKey } from '../hooks/useEscapeKey.js';
 
 const LEVELS = [1, 2, 3, 4, 5, 6];
 
@@ -19,16 +20,7 @@ export default function Controls({
 }) {
   const [showSettings, setShowSettings] = useState(false);
 
-  useEffect(() => {
-    if (!showSettings) return;
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        setShowSettings(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSettings]);
+  useEscapeKey(() => setShowSettings(false), showSettings);
 
   return (
     <div className="border-t border-rule bg-surface px-3 py-2.5">
