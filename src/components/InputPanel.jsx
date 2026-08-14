@@ -93,6 +93,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
         value={rawText}
         onChange={(e) => onChangeRawText(e.target.value)}
         placeholder="粘贴中文文本… (paste Chinese text here, or upload a PDF/DOCX below)"
+        aria-label="Chinese text input"
         className="min-h-0 flex-1 resize-none border-none bg-transparent p-5 font-reading text-lg leading-relaxed text-ink placeholder:font-display placeholder:text-base placeholder:text-ink-faint focus:outline-none"
       />
 

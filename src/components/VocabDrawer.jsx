@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { X, Trash2, Stamp } from 'lucide-react';
 
 /**
@@ -5,6 +6,18 @@ import { X, Trash2, Stamp } from 'lucide-react';
  * user's saved words and phrases for later review.
  */
 export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
+  // Listen for Escape key to close the vocab drawer
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   return (
     <>
       <div
