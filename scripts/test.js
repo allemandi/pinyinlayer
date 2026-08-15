@@ -10,6 +10,15 @@ async function run() {
   const cleaned = cleanText('你好。\n\n世界。');
   assert.strictEqual(cleaned, '你好。\n\n世界。', 'cleanText should preserve Chinese punctuation and paragraph breaks');
 
+  // Punctuation conversion tests
+  const asciiPunctInput = '你好,世界!这是一个测试.真的吗?【是的】;“对”:(好的)...---~';
+  const cleanedPunct = cleanText(asciiPunctInput);
+  assert.strictEqual(
+    cleanedPunct,
+    '你好，世界！这是一个测试。真的吗？【是的】；“对”：（好的）……——～',
+    'cleanText should convert ASCII punctuation to fullwidth Chinese equivalents'
+  );
+
   const sample = Object.entries(hskWords).find(([, level]) => Number.isInteger(level));
   assert.ok(sample, 'hskWords must contain at least one entry with a numeric level');
 

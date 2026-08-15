@@ -17,6 +17,7 @@ export default function App() {
   const [pinyinVisible, setPinyinVisible] = useLocalStorage('pinyinlayer:pinyin', true);
   const [hskFilter, setHskFilter] = useLocalStorage('pinyinlayer:hsk', 'all');
   const [charFormat, setCharFormat] = useLocalStorage('pinyinlayer:charFormat', 'simplified');
+  const [textSize, setTextSize] = useLocalStorage('pinyinlayer:textSize', 'md');
   const [themeMode, setThemeMode] = useLocalStorage('pinyinlayer:theme', 'light');
   const [expanded, setExpanded] = useState(null);
   const [vocabOpen, setVocabOpen] = useState(false);
@@ -93,6 +94,7 @@ export default function App() {
               <ReaderView
                 cleanedText={cleanedText}
                 charFormat={charFormat}
+                textSize={textSize}
                 pinyinVisible={pinyinVisible}
                 hskFilter={hskFilter}
                 onTapToken={handleTapToken}
@@ -106,6 +108,8 @@ export default function App() {
               onChangeHskFilter={setHskFilter}
               charFormat={charFormat}
               onChangeCharFormat={setCharFormat}
+              textSize={textSize}
+              onChangeTextSize={setTextSize}
               vocabCount={vocab.length}
               onOpenVocab={() => setVocabOpen(true)}
             />
