@@ -73,14 +73,14 @@ export default function Controls({
 
       {showSettings && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs transition-opacity duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4 backdrop-blur-xs transition-opacity duration-200"
           onClick={() => setShowSettings(false)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="settings-modal-title"
         >
           <div
-            className="w-full max-w-md rounded-3xl border border-rule bg-surface p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-950 sm:p-7 transition-all"
+            className="w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-3xl border border-rule bg-surface p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-950 sm:p-7 transition-all"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between border-b border-rule pb-3.5 dark:border-slate-800">
@@ -123,7 +123,7 @@ export default function Controls({
                       type="button"
                       onClick={() => onChangeCharFormat(opt.value)}
                       aria-pressed={charFormat === opt.value}
-                      className={`rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                      className={`flex-1 min-w-0 rounded-lg px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                         charFormat === opt.value
                           ? 'bg-jade text-surface shadow-sm'
                           : 'text-ink-soft hover:bg-jade-soft hover:text-ink dark:hover:text-slate-200'
@@ -139,36 +139,52 @@ export default function Controls({
 
               {/* Text Size Section */}
               <div className="flex flex-col gap-2.5">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-ink-soft block">
-                    Text Size
-                  </span>
-                  <span className="text-[11px] text-ink-faint">
-                    Adjust reading font size in the reader
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-ink-soft block">
+                      Text Size
+                    </span>
+                    <span className="text-[11px] text-ink-faint">
+                      Adjust reading font size in the reader
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-jade uppercase tracking-wider">
+                    {{ sm: 'Small', md: 'Medium', lg: 'Large', xl: 'X-Large' }[textSize] || 'Medium'}
                   </span>
                 </div>
 
-                <div className="flex bg-surface-dim rounded-xl p-1 border border-rule gap-1 self-start sm:self-auto dark:bg-slate-900">
-                  {[
-                    { value: 'sm', label: 'Small' },
-                    { value: 'md', label: 'Medium' },
-                    { value: 'lg', label: 'Large' },
-                    { value: 'xl', label: 'X-Large' },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => onChangeTextSize && onChangeTextSize(opt.value)}
-                      aria-pressed={textSize === opt.value}
-                      className={`rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
-                        textSize === opt.value
-                          ? 'bg-jade text-surface shadow-sm'
-                          : 'text-ink-soft hover:bg-jade-soft hover:text-ink dark:hover:text-slate-200'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+                <div className="flex flex-col gap-1.5 px-1 pt-1">
+                  {(() => {
+                    const SIZES = ['sm', 'md', 'lg', 'xl'];
+                    const currentIndex = SIZES.indexOf(textSize) !== -1 ? SIZES.indexOf(textSize) : 1;
+
+                    return (
+                      <>
+                        <input
+                          type="range"
+                          min="0"
+                          max="3"
+                          step="1"
+                          value={currentIndex}
+                          onChange={(e) => {
+                            const newSize = SIZES[Number(e.target.value)];
+                            if (newSize && onChangeTextSize) {
+                              onChangeTextSize(newSize);
+                            }
+                          }}
+                          aria-label="Text size"
+                          aria-valuetext={{ sm: 'Small', md: 'Medium', lg: 'Large', xl: 'X-Large' }[textSize]}
+                          className="w-full accent-jade cursor-pointer h-2 bg-surface-dim rounded-lg appearance-none dark:bg-slate-900 border border-rule/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+                        />
+                        <div className="flex justify-between text-[10px] font-semibold text-ink-faint px-0.5 select-none">
+                          <span>Small</span>
+                          <span>Medium</span>
+                          <span>Large</span>
+                          <span>X-Large</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -191,7 +207,7 @@ export default function Controls({
                         type="button"
                         onClick={() => onChangeHskFilter('all')}
                         aria-pressed={hskFilter === 'all'}
-                        className={`rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                        className={`flex-1 min-w-0 rounded-lg px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                           hskFilter === 'all'
                             ? 'bg-lavender text-surface shadow-sm'
                             : 'text-ink-soft hover:bg-lavender-soft hover:text-ink dark:hover:text-slate-200'
@@ -204,7 +220,7 @@ export default function Controls({
                         type="button"
                         onClick={() => onChangeHskFilter(hskFilter === 'all' ? 3 : hskFilter)}
                         aria-pressed={hskFilter !== 'all'}
-                        className={`rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                        className={`flex-1 min-w-0 rounded-lg px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                           hskFilter !== 'all'
                             ? 'bg-jade text-surface shadow-sm'
                             : 'text-ink-soft hover:bg-jade-soft hover:text-ink dark:hover:text-slate-200'
