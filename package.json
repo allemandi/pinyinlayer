@@ -16,8 +16,8 @@
     "mammoth": "^1.12.1",
     "pdfjs-dist": "^6.2.108",
     "pinyin-pro": "^3.28.2",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "segmentit": "^2.0.3"
   },
   "devDependencies": {
