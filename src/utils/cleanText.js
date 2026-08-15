@@ -10,9 +10,53 @@
 //    numbers, running headers, footnote markers) without touching meaning.
 
 const CJK_AND_PUNCT =
-  /[^\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef，。！？；：、""''《》〈〉…—·\s]/g;
+  /[^\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef，。！？；：、""''“”‘’《》〈〉〔〕【】（）…—·～\s]/g;
 
 const PAGE_NUMBER_LINE = /^[\d\s.\-–—]+$/;
+
+function convertPunctuation(str) {
+  if (!str) return str;
+
+  // Standardize ellipses and long dashes
+  let res = str
+    .replace(/\.{3,}/g, '……')
+    .replace(/--+/g, '——');
+
+  // Convert double quotes "..." to alternating “ and ”
+  let isDoubleOpen = true;
+  res = res.replace(/"/g, () => {
+    const quote = isDoubleOpen ? '“' : '”';
+    isDoubleOpen = !isDoubleOpen;
+    return quote;
+  });
+
+  // Convert single quotes '...' to alternating ‘ and ’
+  let isSingleOpen = true;
+  res = res.replace(/'/g, () => {
+    const quote = isSingleOpen ? '‘' : '’';
+    isSingleOpen = !isSingleOpen;
+    return quote;
+  });
+
+  // Direct 1-to-1 ASCII punctuation mappings
+  const punctMap = {
+    ',': '，',
+    '.': '。',
+    '?': '？',
+    '!': '！',
+    ';': '；',
+    ':': '：',
+    '(': '（',
+    ')': '）',
+    '[': '【',
+    ']': '】',
+    '~': '～',
+    '<': '《',
+    '>': '》',
+  };
+
+  return res.replace(/[,.?!;:()\[\]~<>]/g, (m) => punctMap[m] || m);
+}
 
 export function cleanText(raw) {
   if (!raw) return '';
@@ -27,6 +71,7 @@ export function cleanText(raw) {
         .filter((line) => line && !PAGE_NUMBER_LINE.test(line))
         .join('')
     )
+    .map((paragraph) => convertPunctuation(paragraph))
     .map((paragraph) => paragraph.replace(CJK_AND_PUNCT, '').trim())
     .filter(Boolean);
 

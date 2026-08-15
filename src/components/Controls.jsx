@@ -15,6 +15,8 @@ export default function Controls({
   onChangeHskFilter,
   charFormat,
   onChangeCharFormat,
+  textSize = 'md',
+  onChangeTextSize,
   vocabCount,
   onOpenVocab,
 }) {
@@ -123,6 +125,43 @@ export default function Controls({
                       aria-pressed={charFormat === opt.value}
                       className={`rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                         charFormat === opt.value
+                          ? 'bg-jade text-surface shadow-sm'
+                          : 'text-ink-soft hover:bg-jade-soft hover:text-ink dark:hover:text-slate-200'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t border-rule/50 my-1" />
+
+              {/* Text Size Section */}
+              <div className="flex flex-col gap-2.5">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-soft block">
+                    Text Size
+                  </span>
+                  <span className="text-[11px] text-ink-faint">
+                    Adjust reading font size in the reader
+                  </span>
+                </div>
+
+                <div className="flex bg-surface-dim rounded-xl p-1 border border-rule gap-1 self-start sm:self-auto dark:bg-slate-900">
+                  {[
+                    { value: 'sm', label: 'Small' },
+                    { value: 'md', label: 'Medium' },
+                    { value: 'lg', label: 'Large' },
+                    { value: 'xl', label: 'X-Large' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => onChangeTextSize && onChangeTextSize(opt.value)}
+                      aria-pressed={textSize === opt.value}
+                      className={`rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                        textSize === opt.value
                           ? 'bg-jade text-surface shadow-sm'
                           : 'text-ink-soft hover:bg-jade-soft hover:text-ink dark:hover:text-slate-200'
                       }`}

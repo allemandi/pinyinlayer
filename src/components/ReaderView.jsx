@@ -3,8 +3,34 @@ import { tokenizeParagraph } from '../utils/getPinyin.js';
 import { shouldShowPinyin } from '../utils/pinyinVisibility.js';
 import { loadConversionMaps, convertTextSync, convertWordSync } from '../utils/chineseConversion.js';
 
-const PINYIN_SLOT = 'h-[1.15em]';
 const LONG_PRESS_MS = 450;
+
+const TEXT_SIZE_CONFIG = {
+  sm: {
+    paragraph: 'text-[1.15rem] leading-[2.1]',
+    pinyinSlot: 'h-[1em] text-[0.75rem]',
+    char: 'text-[1.15rem]',
+    underline: 'underline-offset-[6px]',
+  },
+  md: {
+    paragraph: 'text-[1.4rem] leading-[2.35]',
+    pinyinSlot: 'h-[1.15em] text-[0.85rem]',
+    char: 'text-[1.4rem]',
+    underline: 'underline-offset-[8px]',
+  },
+  lg: {
+    paragraph: 'text-[1.75rem] leading-[2.5]',
+    pinyinSlot: 'h-[1.25em] text-[0.95rem]',
+    char: 'text-[1.75rem]',
+    underline: 'underline-offset-[10px]',
+  },
+  xl: {
+    paragraph: 'text-[2.1rem] leading-[2.65]',
+    pinyinSlot: 'h-[1.35em] text-[1.1rem]',
+    char: 'text-[2.1rem]',
+    underline: 'underline-offset-[12px]',
+  },
+};
 
 function splitSentences(paragraph) {
   const matches = paragraph.match(/[^。！？]*[。！？]+|[^。！？]+$/g) || [paragraph];
@@ -73,11 +99,13 @@ async function buildParagraphs(cleanedText, charFormat) {
   return Promise.all(paragraphPromises);
 }
 
-function PinyinSlot({ visible, children, reserveSpace }) {
+function PinyinSlot({ visible, children, reserveSpace, sizeConfig }) {
   return (
     <span
-      className={`block text-center text-[0.85rem] font-medium leading-none text-jade transition-opacity ${
-        reserveSpace ? PINYIN_SLOT : ''
+      className={`block text-center font-medium leading-none text-jade transition-opacity ${
+        sizeConfig.pinyinSlot
+      } ${
+        reserveSpace ? 'block' : ''
       } ${visible ? 'opacity-100' : reserveSpace ? 'opacity-0' : 'hidden'}`}
       aria-hidden={!visible}
     >
@@ -86,7 +114,7 @@ function PinyinSlot({ visible, children, reserveSpace }) {
   );
 }
 
-function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, onTapToken, onPeekStart, onPeekEnd }) {
+function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, onTapToken, onPeekStart, onPeekEnd, sizeConfig }) {
   const longPressFired = useRef(false);
   const pressTimer = useRef(null);
 
@@ -128,31 +156,31 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
       onPointerCancel={handlePointerUp}
       onPointerLeave={handlePointerUp}
       className={`group relative inline-flex items-end gap-px rounded-md px-1 py-0.5 align-bottom transition-all duration-150 cursor-pointer hover:bg-jade-soft/90 active:bg-lavender-soft/80 hover:shadow-xs ${
-        saved ? 'decoration-seal decoration-2 underline underline-offset-[8px]' : ''
+        saved ? `decoration-seal decoration-2 underline ${sizeConfig.underline}` : ''
       }`}
     >
       {token.chars.map((char, cIndex) => (
         <span key={cIndex} className="inline-flex flex-col items-center">
-          <PinyinSlot visible={showPinyin} reserveSpace={reservePinyinRow}>
+          <PinyinSlot visible={showPinyin} reserveSpace={reservePinyinRow} sizeConfig={sizeConfig}>
             {token.pinyin[cIndex]}
           </PinyinSlot>
-          <span className="font-reading text-[1.4rem] leading-none">{char}</span>
+          <span className={`font-reading ${sizeConfig.char} leading-none`}>{char}</span>
         </span>
       ))}
     </button>
   );
 }
 
-function PunctuationToken({ text, reservePinyinRow }) {
+function PunctuationToken({ text, reservePinyinRow, sizeConfig }) {
   return (
     <span className="inline-flex flex-col items-center align-bottom">
-      {reservePinyinRow && <PinyinSlot visible={false} reserveSpace />}
-      <span className="font-reading text-[1.4rem] leading-none text-ink-soft">{text}</span>
+      {reservePinyinRow && <PinyinSlot visible={false} reserveSpace sizeConfig={sizeConfig} />}
+      <span className={`font-reading ${sizeConfig.char} leading-none text-ink-soft`}>{text}</span>
     </span>
   );
 }
 
-export default function ReaderView({ cleanedText, charFormat, pinyinVisible, hskFilter, onTapToken, isSaved }) {
+export default function ReaderView({ cleanedText, charFormat, textSize = 'md', pinyinVisible, hskFilter, onTapToken, isSaved }) {
   const [paragraphs, setParagraphs] = useState([]);
   const [peekedKeys, setPeekedKeys] = useState(() => new Set());
   const [loading, setLoading] = useState(false);
@@ -229,11 +257,12 @@ export default function ReaderView({ cleanedText, charFormat, pinyinVisible, hsk
   }
 
   const reservePinyinRow = pinyinVisible;
+  const sizeConfig = TEXT_SIZE_CONFIG[textSize] || TEXT_SIZE_CONFIG.md;
 
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-6">
       {paragraphs.map((tokens, pIndex) => (
-        <p key={pIndex} className="mb-7 text-[1.4rem] leading-[2.35] last:mb-0">
+        <p key={pIndex} className={`mb-7 ${sizeConfig.paragraph} last:mb-0`}>
           {tokens.map((token, tIndex) => {
             const tokenKey = `${pIndex}-${tIndex}`;
 
@@ -243,6 +272,7 @@ export default function ReaderView({ cleanedText, charFormat, pinyinVisible, hsk
                   key={tIndex}
                   text={token.text}
                   reservePinyinRow={reservePinyinRow}
+                  sizeConfig={sizeConfig}
                 />
               );
             }
@@ -261,6 +291,7 @@ export default function ReaderView({ cleanedText, charFormat, pinyinVisible, hsk
                 onTapToken={onTapToken}
                 onPeekStart={handlePeekStart}
                 onPeekEnd={handlePeekEnd}
+                sizeConfig={sizeConfig}
               />
             );
           })}
