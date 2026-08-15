@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { tokenizeParagraph } from '../utils/getPinyin.js';
 import { shouldShowPinyin } from '../utils/pinyinVisibility.js';
-import { convertTextAsync, convertWordAsync } from '../utils/chineseConversion.js';
+import { loadConversionMaps, convertTextSync, convertWordSync } from '../utils/chineseConversion.js';
 
 const PINYIN_SLOT = 'h-[1.15em]';
 const LONG_PRESS_MS = 450;
@@ -17,9 +17,10 @@ function splitSentences(paragraph) {
 }
 
 async function buildParagraphs(cleanedText, charFormat) {
+  const maps = await loadConversionMaps();
   // If formatting to simplified or traditional, we do tokenization on Simplified text for best segmentation accuracy.
   const segmentingFormat = charFormat === 'original' ? 'original' : 'simplified';
-  const processedText = await convertTextAsync(cleanedText, segmentingFormat);
+  const processedText = convertTextSync(cleanedText, segmentingFormat, maps);
 
   const blocks = processedText.split(/\n{2,}/).filter(Boolean);
   const paragraphPromises = blocks.map(async (paragraph) => {
@@ -27,48 +28,46 @@ async function buildParagraphs(cleanedText, charFormat) {
     const tokens = await tokenizeParagraph(paragraph);
     let offset = 0;
 
-    return Promise.all(
-      tokens.map(async (token) => {
-        const start = offset;
-        offset += token.text.length;
-        const sentence = sentences.find((s) => start >= s.start && start < s.end);
-        const tokenSentence = sentence ? sentence.text : paragraph;
+    return tokens.map((token) => {
+      const start = offset;
+      offset += token.text.length;
+      const sentence = sentences.find((s) => start >= s.start && start < s.end);
+      const tokenSentence = sentence ? sentence.text : paragraph;
 
-        // If formatting to Traditional, convert the Simplified token/sentence back to Traditional Chinese
-        if (charFormat === 'traditional') {
-          const tradText = await convertWordAsync(token.text, 'traditional');
-          const tradChars = await Promise.all(token.chars.map(c => convertWordAsync(c, 'traditional')));
-          const tradSentence = await convertTextAsync(tokenSentence, 'traditional');
-
-          return {
-            ...token,
-            text: tradText,
-            chars: tradChars,
-            sentence: tradSentence,
-            simpText: token.text,
-            simpChars: token.chars,
-          };
-        }
-
-        if (charFormat === 'original') {
-          const simpText = await convertWordAsync(token.text, 'simplified');
-          const simpChars = await Promise.all(token.chars.map(c => convertWordAsync(c, 'simplified')));
-          return {
-            ...token,
-            sentence: tokenSentence,
-            simpText,
-            simpChars,
-          };
-        }
+      // If formatting to Traditional, convert the Simplified token/sentence back to Traditional Chinese
+      if (charFormat === 'traditional') {
+        const tradText = convertWordSync(token.text, 'traditional', maps);
+        const tradChars = token.chars.map((c) => convertWordSync(c, 'traditional', maps));
+        const tradSentence = convertTextSync(tokenSentence, 'traditional', maps);
 
         return {
           ...token,
-          sentence: tokenSentence,
+          text: tradText,
+          chars: tradChars,
+          sentence: tradSentence,
           simpText: token.text,
           simpChars: token.chars,
         };
-      })
-    );
+      }
+
+      if (charFormat === 'original') {
+        const simpText = convertWordSync(token.text, 'simplified', maps);
+        const simpChars = token.chars.map((c) => convertWordSync(c, 'simplified', maps));
+        return {
+          ...token,
+          sentence: tokenSentence,
+          simpText,
+          simpChars,
+        };
+      }
+
+      return {
+        ...token,
+        sentence: tokenSentence,
+        simpText: token.text,
+        simpChars: token.chars,
+      };
+    });
   });
 
   return Promise.all(paragraphPromises);

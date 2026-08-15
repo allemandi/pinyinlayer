@@ -56,6 +56,12 @@ async function run() {
   assert.ok(results && results.length > 0, 'lookupWord should successfully resolve definitions for Traditional inputs');
   assert.strictEqual(results[0].p, 'fan2 ti3 zi4', 'lookupWord should retrieve the correct pinyin for Traditional input');
 
+  // Synchronous conversion functions test
+  const { loadConversionMaps, convertTextSync, convertWordSync } = await import('../src/utils/chineseConversion.js');
+  const maps = await loadConversionMaps();
+  assert.strictEqual(convertTextSync('测试', 'traditional', maps), '測試', 'convertTextSync converts text synchronously when maps are preloaded');
+  assert.strictEqual(convertWordSync('测试', 'traditional', maps), '測試', 'convertWordSync converts words synchronously when maps are preloaded');
+
   console.log('✅ All minimal tests passed');
 }
 
