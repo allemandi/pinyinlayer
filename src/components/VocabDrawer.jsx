@@ -22,6 +22,7 @@ export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
           isOpen ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:translate-x-full'
         }`}
         aria-hidden={!isOpen}
+        inert={!isOpen ? '' : undefined}
       >
         <div className="flex items-center justify-between border-b border-rule px-4 py-3.5">
           <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
@@ -35,7 +36,7 @@ export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
             type="button"
             onClick={onClose}
             aria-label="Close vocab list"
-            className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-surface-dim hover:text-ink"
+            className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -63,7 +64,7 @@ export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
                     type="button"
                     onClick={() => onRemove(entry.word)}
                     aria-label={`Remove ${entry.word} from vocab list`}
-                    className="shrink-0 rounded-full p-1.5 text-ink-faint transition-colors hover:bg-seal-soft hover:text-seal"
+                    className="shrink-0 rounded-full p-1.5 text-ink-faint transition-colors hover:bg-seal-soft hover:text-seal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer"
                   >
                     <Trash2 size={16} />
                   </button>

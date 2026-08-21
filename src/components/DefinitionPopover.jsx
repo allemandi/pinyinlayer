@@ -11,7 +11,7 @@ const MARGIN = 16;
 
 function clampPosition(rect) {
   const left = Math.min(Math.max(rect.left, MARGIN), window.innerWidth - WIDTH - MARGIN);
-  const top = Math.min(rect.bottom + 10, window.innerHeight - 240);
+  const top = Math.min(rect.bottom + 10, window.innerHeight - MARGIN - 280);
   return { left: Math.max(left, MARGIN), top: Math.max(top, MARGIN) };
 }
 
@@ -117,7 +117,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     <>
       <div className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]" onClick={onClose} />
       <div
-        className="fixed z-40 w-[calc(100vw-2.5rem)] sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all dark:border-slate-700 dark:bg-slate-950"
+        className="fixed z-40 w-[calc(100vw-2.5rem)] max-h-[85vh] overflow-y-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all dark:border-slate-700 dark:bg-slate-950"
         style={popoverStyle}
         role="dialog"
         aria-modal="true"
