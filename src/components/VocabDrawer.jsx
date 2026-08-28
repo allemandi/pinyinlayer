@@ -1,5 +1,6 @@
 import { X, Trash2, Stamp } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
+import { useFocusTrap } from '../hooks/useFocusTrap.js';
 
 /**
  * Slide-out drawer (right on desktop, bottom sheet on mobile) listing the
@@ -8,6 +9,7 @@ import { useEscapeKey } from '../hooks/useEscapeKey.js';
 export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
   // Listen for Escape key to close the vocab drawer
   useEscapeKey(onClose, isOpen);
+  const drawerRef = useFocusTrap(isOpen);
 
   return (
     <>
@@ -18,6 +20,7 @@ export default function VocabDrawer({ isOpen, onClose, vocab, onRemove }) {
         onClick={onClose}
       />
       <aside
+        ref={drawerRef}
         className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[80vh] flex-col rounded-t-2xl border-t border-rule bg-surface shadow-2xl transition-transform sm:inset-y-0 sm:right-0 sm:left-auto sm:h-full sm:max-h-none sm:w-96 sm:rounded-t-none sm:border-l sm:border-t-0 ${
           isOpen ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:translate-x-full'
         }`}

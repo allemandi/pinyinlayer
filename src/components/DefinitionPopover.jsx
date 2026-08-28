@@ -4,6 +4,7 @@ import { lookupWord } from '../utils/lookupWord.js';
 import { translateSentence } from '../utils/translateSentence.js';
 import { convertWordAsync } from '../utils/chineseConversion.js';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
+import { useFocusTrap } from '../hooks/useFocusTrap.js';
 import hskWords from '../data/hskWords.js';
 
 const WIDTH = 380; // Desktop width for popover
@@ -46,6 +47,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
 
   // Listen for Escape key to close the definition popover
   useEscapeKey(onClose, Boolean(target));
+  const popoverRef = useFocusTrap(Boolean(target));
 
   useEffect(() => {
     if (!target) return;
@@ -117,6 +119,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     <>
       <div className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]" onClick={onClose} />
       <div
+        ref={popoverRef}
         className="fixed z-40 w-[calc(100vw-2.5rem)] max-h-[85vh] overflow-y-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all dark:border-slate-700 dark:bg-slate-950"
         style={popoverStyle}
         role="dialog"

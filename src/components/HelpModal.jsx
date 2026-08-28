@@ -1,11 +1,13 @@
 import { X, Shield, Globe, HelpCircle } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
+import { useFocusTrap } from '../hooks/useFocusTrap.js';
 
 /**
  * HelpModal displays concise, direct information about PinyinLayer.
  */
 export default function HelpModal({ isOpen, onClose }) {
   useEscapeKey(onClose, isOpen);
+  const helpContainerRef = useFocusTrap(isOpen);
 
   if (!isOpen) return null;
 
@@ -19,6 +21,7 @@ export default function HelpModal({ isOpen, onClose }) {
       >
         {/* Modal Card */}
         <div
+          ref={helpContainerRef}
           className="w-full max-w-md rounded-3xl border border-rule bg-surface p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-950 sm:p-7"
           onClick={(e) => e.stopPropagation()}
           role="dialog"

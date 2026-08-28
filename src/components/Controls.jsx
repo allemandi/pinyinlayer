@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Eye, EyeOff, BookMarked, Settings, X } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
+import { useFocusTrap } from '../hooks/useFocusTrap.js';
 
 const LEVELS = [1, 2, 3, 4, 5, 6];
 
@@ -23,6 +24,7 @@ export default function Controls({
   const [showSettings, setShowSettings] = useState(false);
 
   useEscapeKey(() => setShowSettings(false), showSettings);
+  const settingsContainerRef = useFocusTrap(showSettings);
 
   return (
     <div className="border-t border-rule bg-surface px-3 py-2.5">
@@ -80,6 +82,7 @@ export default function Controls({
           aria-labelledby="settings-modal-title"
         >
           <div
+            ref={settingsContainerRef}
             className="w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-3xl border border-rule bg-surface p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-950 sm:p-7 transition-all"
             onClick={(e) => e.stopPropagation()}
           >
