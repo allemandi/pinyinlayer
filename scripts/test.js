@@ -71,6 +71,27 @@ async function run() {
   assert.strictEqual(convertTextSync('测试', 'traditional', maps), '測試', 'convertTextSync converts text synchronously when maps are preloaded');
   assert.strictEqual(convertWordSync('测试', 'traditional', maps), '測試', 'convertWordSync converts words synchronously when maps are preloaded');
 
+  // Vocab tagging state logic test
+  let mockVocab = [
+    { word: '你好', pinyin: 'nǐ hǎo', status: 'passed' },
+    { word: '世界', pinyin: 'shì jiè', status: 'failed' }
+  ];
+  const tagStatus = (word, status) => {
+    mockVocab = mockVocab.map((v) => (v.word === word ? { ...v, status } : v));
+  };
+  const clearStatuses = () => {
+    mockVocab = mockVocab.map((v) => {
+      const { status, ...rest } = v;
+      return rest;
+    });
+  };
+
+  tagStatus('你好', 'failed');
+  assert.strictEqual(mockVocab.find((v) => v.word === '你好').status, 'failed', 'tagStatus should update vocab item status to failed');
+
+  clearStatuses();
+  assert.strictEqual(mockVocab.find((v) => v.word === '你好').status, undefined, 'clearStatuses should remove status tag from vocab items');
+
   console.log('✅ All minimal tests passed');
 }
 

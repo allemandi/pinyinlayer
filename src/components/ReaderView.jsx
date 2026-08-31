@@ -7,28 +7,28 @@ const LONG_PRESS_MS = 450;
 
 const TEXT_SIZE_CONFIG = {
   sm: {
-    paragraph: 'text-[1.15rem] leading-[2.1]',
-    pinyinSlot: 'h-[1em] text-[0.75rem]',
-    char: 'text-[1.15rem]',
-    underline: 'underline-offset-[6px]',
+    paragraph: 'text-[1.3rem] leading-[2.2]',
+    pinyinSlot: 'h-[1.1em] text-[0.85rem]',
+    char: 'text-[1.3rem]',
+    underline: 'underline-offset-[7px]',
   },
   md: {
-    paragraph: 'text-[1.4rem] leading-[2.35]',
-    pinyinSlot: 'h-[1.15em] text-[0.85rem]',
-    char: 'text-[1.4rem]',
-    underline: 'underline-offset-[8px]',
+    paragraph: 'text-[1.6rem] leading-[2.45]',
+    pinyinSlot: 'h-[1.2em] text-[1rem]',
+    char: 'text-[1.6rem]',
+    underline: 'underline-offset-[9px]',
   },
   lg: {
-    paragraph: 'text-[1.75rem] leading-[2.5]',
-    pinyinSlot: 'h-[1.25em] text-[0.95rem]',
-    char: 'text-[1.75rem]',
-    underline: 'underline-offset-[10px]',
+    paragraph: 'text-[2rem] leading-[2.6]',
+    pinyinSlot: 'h-[1.3em] text-[1.15rem]',
+    char: 'text-[2rem]',
+    underline: 'underline-offset-[11px]',
   },
   xl: {
-    paragraph: 'text-[2.1rem] leading-[2.65]',
-    pinyinSlot: 'h-[1.35em] text-[1.1rem]',
-    char: 'text-[2.1rem]',
-    underline: 'underline-offset-[12px]',
+    paragraph: 'text-[2.4rem] leading-[2.8]',
+    pinyinSlot: 'h-[1.4em] text-[1.3rem]',
+    char: 'text-[2.4rem]',
+    underline: 'underline-offset-[13px]',
   },
 };
 

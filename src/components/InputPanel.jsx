@@ -101,7 +101,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
         <p className="border-t border-rule bg-surface px-4 py-2 text-base text-seal dark:border-slate-700">{error}</p>
       )}
 
-      <div className="flex flex-row items-center gap-1.5 sm:gap-2 border-t border-rule bg-surface px-3 py-2.5 sm:px-4 sm:py-3 select-none">
+      <div className="flex flex-row items-center gap-2 border-t border-rule bg-surface px-3 py-2.5 sm:px-4 sm:py-3 select-none">
         <input
           ref={fileInputRef}
           type="file"
@@ -113,18 +113,18 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={busy}
-          className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-3 py-2 sm:px-4 text-sm sm:text-base font-bold text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
         >
           {busy ? (
-            <LoaderCircle size={14} className="animate-spin" strokeWidth={2.25} />
+            <LoaderCircle size={18} className="animate-spin" strokeWidth={2.25} />
           ) : (
-            <FileUp size={14} strokeWidth={2.25} />
+            <FileUp size={18} strokeWidth={2.25} />
           )}
           <span>
             {busy ? 'Reading…' : (
               <>
                 <span className="sm:hidden">Upload</span>
-                <span className="hidden sm:inline">Upload PDF / DOCX</span>
+                <span className="hidden sm:inline">Upload File</span>
               </>
             )}
           </span>
@@ -136,9 +136,9 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
             onChangeRawText('');
             onSubmit('');
           }}
-          className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.97] cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-3 py-2 sm:px-4 text-sm sm:text-base font-bold text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.97] cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
         >
-          <Eraser size={14} strokeWidth={2.25} />
+          <Eraser size={18} strokeWidth={2.25} />
           <span>Clear</span>
         </button>
 
@@ -146,10 +146,10 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
           type="button"
           onClick={() => onSubmit(rawText)}
           disabled={!rawText.trim()}
-          className="ml-auto flex items-center gap-1.5 sm:gap-2 rounded-full bg-jade px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-surface transition duration-150 ease-out hover:bg-jade/90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+          className="ml-auto flex items-center justify-center gap-1.5 sm:gap-2 rounded-full bg-jade px-3.5 py-2 sm:px-5 text-sm sm:text-base font-bold text-surface transition duration-150 ease-out hover:bg-jade/90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
         >
           <span>Send to reader</span>
-          <ArrowRightCircle size={14} strokeWidth={2.25} />
+          <ArrowRightCircle size={18} strokeWidth={2.25} />
         </button>
       </div>
     </div>
