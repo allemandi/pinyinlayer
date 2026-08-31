@@ -33,5 +33,23 @@ export function useVocab() {
     [isSaved, add, remove]
   );
 
-  return { vocab, add, remove, toggle, isSaved };
+  const tagStatus = useCallback(
+    (word, status) => {
+      setVocab((prev) =>
+        prev.map((v) => (v.word === word ? { ...v, status } : v))
+      );
+    },
+    [setVocab]
+  );
+
+  const clearStatuses = useCallback(() => {
+    setVocab((prev) =>
+      prev.map((v) => {
+        const { status, ...rest } = v;
+        return rest;
+      })
+    );
+  }, [setVocab]);
+
+  return { vocab, add, remove, toggle, isSaved, tagStatus, clearStatuses };
 }

@@ -6,6 +6,7 @@ import Controls from './components/Controls.jsx';
 import ReaderView from './components/ReaderView.jsx';
 import DefinitionPopover from './components/DefinitionPopover.jsx';
 import VocabDrawer from './components/VocabDrawer.jsx';
+import FlashcardModal from './components/FlashcardModal.jsx';
 import HelpModal from './components/HelpModal.jsx';
 import { cleanText } from './utils/cleanText.js';
 import { useVocab } from './hooks/useVocab.js';
@@ -23,12 +24,19 @@ export default function App() {
   const [vocabOpen, setVocabOpen] = useState(false);
   const [popoverTarget, setPopoverTarget] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [flashcardOpen, setFlashcardOpen] = useState(false);
+  const [activeDeck, setActiveDeck] = useState([]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', themeMode === 'dark');
   }, [themeMode]);
 
-  const { vocab, toggle, remove, isSaved } = useVocab();
+  const { vocab, toggle, remove, isSaved, tagStatus, clearStatuses } = useVocab();
+
+  const handleStartStudy = (deck) => {
+    setActiveDeck(deck);
+    setFlashcardOpen(true);
+  };
 
   const handleSubmit = (text) => {
     const cleaned = cleanText(text);
@@ -139,7 +147,21 @@ export default function App() {
         onToggleSave={toggle}
       />
 
-      <VocabDrawer isOpen={vocabOpen} onClose={() => setVocabOpen(false)} vocab={vocab} onRemove={remove} />
+      <VocabDrawer
+        isOpen={vocabOpen}
+        onClose={() => setVocabOpen(false)}
+        vocab={vocab}
+        onRemove={remove}
+        onStartStudy={handleStartStudy}
+        onClearStatuses={clearStatuses}
+      />
+
+      <FlashcardModal
+        isOpen={flashcardOpen}
+        onClose={() => setFlashcardOpen(false)}
+        deck={activeDeck}
+        onTagStatus={tagStatus}
+      />
 
       <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
