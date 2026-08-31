@@ -56,9 +56,12 @@ function VocabSettingsModal({
               id={orderSelectId}
               value={cardOrder}
               onChange={(e) => onChangeCardOrder(e.target.value)}
-              className="w-full rounded-xl border border-rule bg-surface px-3 py-2 text-sm text-ink focus:border-jade focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+              className="w-full rounded-xl border border-rule bg-surface px-3 py-2.5 text-sm font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
             >
-              <option value="sequential">Original Order (Newest First)</option>
+              <option value="sequential">Newest First (Default)</option>
+              <option value="oldest">Oldest First</option>
+              <option value="needs_review_first">Needs Review First</option>
+              <option value="alphabetical">Alphabetical (A-Z)</option>
               <option value="shuffled">Shuffled (Random)</option>
             </select>
           </div>
@@ -169,7 +172,17 @@ export default function VocabDrawer({
   const handleLaunchStudy = () => {
     let deck = vocab.filter((v) => selectedWords.has(v.word));
 
-    if (cardOrder === 'shuffled') {
+    if (cardOrder === 'oldest') {
+      deck = [...deck].reverse();
+    } else if (cardOrder === 'needs_review_first') {
+      deck = [...deck].sort((a, b) => {
+        if (a.status === 'failed' && b.status !== 'failed') return -1;
+        if (a.status !== 'failed' && b.status === 'failed') return 1;
+        return 0;
+      });
+    } else if (cardOrder === 'alphabetical') {
+      deck = [...deck].sort((a, b) => a.word.localeCompare(b.word, 'zh-Hans'));
+    } else if (cardOrder === 'shuffled') {
       deck = [...deck].sort(() => Math.random() - 0.5);
     }
 
@@ -191,50 +204,50 @@ export default function VocabDrawer({
       />
       <aside
         ref={drawerRef}
-        className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col rounded-t-2xl border-t border-rule bg-surface shadow-2xl transition-transform sm:inset-y-0 sm:right-0 sm:left-auto sm:h-full sm:max-h-none sm:w-96 sm:rounded-t-none sm:border-l sm:border-t-0 ${
+        className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[90vh] flex-col rounded-t-2xl border-t border-rule bg-surface shadow-2xl transition-transform sm:inset-y-0 sm:right-0 sm:left-auto sm:h-full sm:max-h-none sm:w-[28rem] lg:w-[32rem] sm:rounded-t-none sm:border-l sm:border-t-0 ${
           isOpen ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:translate-x-full'
         }`}
         aria-hidden={!isOpen}
         inert={!isOpen ? '' : undefined}
       >
         {/* Drawer Header */}
-        <div className="flex items-center justify-between border-b border-rule px-4 py-3.5">
-          <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-ink dark:text-slate-100">
-            <Stamp size={19} className="text-seal" />
+        <div className="flex items-center justify-between border-b border-rule px-5 py-4">
+          <h2 className="flex items-center gap-2.5 font-display text-xl font-bold text-ink dark:text-slate-100 sm:text-2xl">
+            <Stamp size={22} className="text-seal" />
             Saved vocab
-            <span className="text-base font-normal text-ink-faint">
+            <span className="rounded-full bg-surface-dim px-2.5 py-0.5 text-base font-semibold text-ink-soft dark:bg-slate-800 dark:text-slate-300">
               {vocab.length}
             </span>
           </h2>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => setSettingsOpen(true)}
               title="Vocab Deck Settings"
               aria-label="Vocab Deck Settings"
-              className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="rounded-full p-2 text-ink-soft transition-colors hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
-              <Settings size={18} />
+              <Settings size={20} />
             </button>
             <button
               type="button"
               onClick={onClose}
               aria-label="Close vocab list"
-              className="rounded-full p-1.5 text-ink-soft transition-colors hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="rounded-full p-2 text-ink-soft transition-colors hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
             >
-              <X size={18} />
+              <X size={20} />
             </button>
           </div>
         </div>
 
         {/* Selection Quick Bar */}
         {vocab.length > 0 && (
-          <div className="flex items-center justify-between border-b border-rule bg-paper px-4 py-2 text-xs dark:bg-slate-950">
-            <div className="flex items-center gap-2 text-ink-faint">
+          <div className="flex items-center justify-between border-b border-rule bg-paper px-5 py-2.5 text-sm dark:bg-slate-950">
+            <div className="flex items-center gap-2.5 text-ink-soft dark:text-slate-400">
               <button
                 type="button"
                 onClick={handleSelectAll}
-                className="hover:text-jade font-medium cursor-pointer"
+                className="hover:text-jade font-bold cursor-pointer"
               >
                 Select All
               </button>
@@ -243,8 +256,8 @@ export default function VocabDrawer({
                 type="button"
                 onClick={handleSelectFailed}
                 disabled={failedCount === 0}
-                className={`font-medium cursor-pointer ${
-                  failedCount > 0 ? 'hover:text-seal text-seal/90' : 'opacity-40 cursor-not-allowed'
+                className={`font-bold cursor-pointer ${
+                  failedCount > 0 ? 'hover:text-seal text-seal' : 'opacity-40 cursor-not-allowed'
                 }`}
               >
                 Select Failed ({failedCount})
@@ -253,13 +266,13 @@ export default function VocabDrawer({
               <button
                 type="button"
                 onClick={handleClearSelection}
-                className="hover:text-ink cursor-pointer"
+                className="hover:text-ink font-semibold cursor-pointer"
               >
                 Clear
               </button>
             </div>
-            <span className="text-ink-faint font-medium">
-              {selectedWords.size > 0 ? selectedWords.size : vocab.length} selected
+            <span className="text-ink-faint font-semibold">
+              {selectedWords.size} selected
             </span>
           </div>
         )}
@@ -267,7 +280,7 @@ export default function VocabDrawer({
         {/* Vocab List Area */}
         <div className="flex-1 overflow-y-auto">
           {vocab.length === 0 ? (
-            <p className="p-6 text-center text-base leading-relaxed text-ink-faint">
+            <p className="p-8 text-center text-lg leading-relaxed text-ink-faint">
               Tap any word in the reader and stamp it to save it here.
             </p>
           ) : (
@@ -275,46 +288,51 @@ export default function VocabDrawer({
               {vocab.map((entry) => {
                 const isChecked = selectedWords.has(entry.word);
                 return (
-                  <li key={entry.word} className="flex items-start gap-3 px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      onChange={() => handleToggleSelectWord(entry.word)}
-                      aria-label={`Select ${entry.word} for flashcard study`}
-                      className="mt-1.5 h-4 w-4 rounded border-rule text-jade focus:ring-jade cursor-pointer"
-                    />
+                  <li key={entry.word} className="flex items-start gap-4 px-5 py-4 hover:bg-surface-dim/40 transition">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleSelectWord(entry.word)}
+                      aria-label={`${isChecked ? 'Deselect' : 'Select'} ${entry.word} for flashcards`}
+                      className={`mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                        isChecked
+                          ? 'border-jade bg-jade text-white shadow-xs'
+                          : 'border-rule bg-surface text-transparent hover:border-jade/60 dark:border-slate-700 dark:bg-slate-900'
+                      }`}
+                    >
+                      <Check size={16} strokeWidth={3.5} />
+                    </button>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="font-reading text-xl leading-tight text-ink dark:text-slate-100">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <p className="font-reading text-2xl font-medium leading-tight text-ink dark:text-slate-100">
                           {entry.word}
                         </p>
                         {/* Status Badge */}
                         {entry.status === 'passed' && (
                           <span
                             title="Passed"
-                            className="inline-flex items-center gap-1 rounded-full bg-jade-soft/80 px-2 py-0.5 text-[11px] font-semibold text-jade dark:bg-emerald-950 dark:text-emerald-300"
+                            className="inline-flex items-center gap-1 rounded-full bg-jade-soft px-2.5 py-0.5 text-xs font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300"
                           >
-                            <CheckCircle2 size={12} />
+                            <CheckCircle2 size={13} />
                             Passed
                           </span>
                         )}
                         {entry.status === 'failed' && (
                           <span
                             title="Needs Review"
-                            className="inline-flex items-center gap-1 rounded-full bg-seal-soft/80 px-2 py-0.5 text-[11px] font-semibold text-seal dark:bg-rose-950 dark:text-rose-300"
+                            className="inline-flex items-center gap-1 rounded-full bg-seal-soft px-2.5 py-0.5 text-xs font-bold text-seal dark:bg-rose-950 dark:text-rose-300"
                           >
-                            <XCircle size={12} />
+                            <XCircle size={13} />
                             Needs Review
                           </span>
                         )}
                       </div>
 
-                      <p className="text-base font-medium text-jade dark:text-sky-400">
+                      <p className="mt-1 text-lg font-bold text-jade dark:text-sky-400">
                         {entry.pinyin}
                       </p>
                       {entry.definitions?.length > 0 && (
-                        <p className="mt-1.5 text-base leading-snug text-ink-soft dark:text-slate-300">
+                        <p className="mt-1.5 text-base sm:text-lg leading-snug text-ink-soft dark:text-slate-300">
                           {entry.definitions[0]}
                         </p>
                       )}
@@ -324,9 +342,9 @@ export default function VocabDrawer({
                       type="button"
                       onClick={() => onRemove(entry.word)}
                       aria-label={`Remove ${entry.word} from vocab list`}
-                      className="shrink-0 rounded-full p-1.5 text-ink-faint transition-colors hover:bg-seal-soft hover:text-seal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:hover:bg-rose-950 dark:hover:text-rose-300"
+                      className="shrink-0 rounded-full p-2 text-ink-faint transition-colors hover:bg-seal-soft hover:text-seal focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:hover:bg-rose-950 dark:hover:text-rose-300"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={18} />
                     </button>
                   </li>
                 );
@@ -337,15 +355,18 @@ export default function VocabDrawer({
 
         {/* Drawer Action Footer */}
         {vocab.length > 0 && (
-          <div className="border-t border-rule bg-surface p-4 dark:border-slate-800 dark:bg-slate-900">
+          <div className="border-t border-rule bg-surface p-5 dark:border-slate-800 dark:bg-slate-900">
             <button
               type="button"
               onClick={handleLaunchStudy}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-jade px-4 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-jade/90 active:scale-[0.99] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+              disabled={selectedWords.size === 0}
+              className={`w-full inline-flex items-center justify-center gap-2.5 rounded-2xl bg-jade px-5 py-3.5 text-base sm:text-lg font-bold text-white shadow-md transition hover:bg-jade/90 active:scale-[0.99] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                selectedWords.size === 0 ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
-              <Play size={16} fill="currentColor" />
+              <Play size={18} fill="currentColor" />
               <span>
-                Study Flashcards ({selectedWords.size > 0 ? selectedWords.size : vocab.length})
+                Study Flashcards ({selectedWords.size})
               </span>
             </button>
           </div>

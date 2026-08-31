@@ -33,13 +33,13 @@ export default function Controls({
           type="button"
           onClick={onTogglePinyin}
           aria-pressed={pinyinVisible}
-          className={`flex items-center gap-1.5 sm:gap-2 rounded-full border border-rule px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-9 ${
+          className={`flex items-center gap-2 rounded-full border border-rule px-4 py-2 text-sm sm:text-base font-bold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 ${
             pinyinVisible
               ? 'bg-jade-soft text-jade shadow-sm shadow-jade/20'
               : 'bg-surface-dim text-ink-soft hover:bg-surface hover:text-ink'
           } active:scale-[0.97] cursor-pointer`}
         >
-          {pinyinVisible ? <Eye size={15} strokeWidth={2.25} /> : <EyeOff size={15} strokeWidth={2.25} />}
+          {pinyinVisible ? <Eye size={17} strokeWidth={2.25} /> : <EyeOff size={17} strokeWidth={2.25} />}
           <span>{pinyinVisible ? 'Pinyin on' : 'Pinyin off'}</span>
         </button>
 
@@ -48,25 +48,25 @@ export default function Controls({
           onClick={() => setShowSettings(true)}
           aria-haspopup="dialog"
           aria-expanded={showSettings}
-          className={`flex items-center gap-1.5 sm:gap-2 rounded-full border px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold transition duration-150 ease-out active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-9 ${
+          className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm sm:text-base font-bold transition duration-150 ease-out active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 ${
             showSettings
               ? 'bg-jade border-jade text-surface shadow-sm'
               : 'bg-surface-dim border-rule text-ink-soft hover:bg-surface hover:text-ink'
           }`}
         >
-          <Settings size={15} className={showSettings ? 'animate-[spin_10s_linear_infinite]' : ''} />
+          <Settings size={17} className={showSettings ? 'animate-[spin_10s_linear_infinite]' : ''} />
           <span>Settings</span>
         </button>
 
         <button
           type="button"
           onClick={onOpenVocab}
-          className="ml-auto flex items-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-ink-soft transition duration-150 ease-out hover:bg-lavender-soft hover:text-ink active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-9"
+          className="ml-auto flex items-center gap-2 rounded-full border border-rule bg-surface px-4 py-2 text-sm sm:text-base font-bold text-ink-soft transition duration-150 ease-out hover:bg-lavender-soft hover:text-ink active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10"
         >
-          <BookMarked size={15} strokeWidth={2.25} />
+          <BookMarked size={17} strokeWidth={2.25} />
           <span>Vocab</span>
           {vocabCount > 0 && (
-            <span className="rounded-full bg-seal px-1.5 py-0.5 text-[10px] sm:text-xs font-bold text-surface animate-[scaleIn_0.2s_ease-out]">
+            <span className="rounded-full bg-seal px-2 py-0.5 text-xs font-bold text-surface animate-[scaleIn_0.2s_ease-out]">
               {vocabCount}
             </span>
           )}

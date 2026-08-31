@@ -154,7 +154,6 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
                   word: target.text,
                   pinyin: pinyinText,
                   definitions: senses?.map((s) => s.d.join('; ')) ?? [],
-                  sentence: target.sentence,
                 })
               }
               aria-label={saved ? 'Remove from vocab list' : 'Save to vocab list'}

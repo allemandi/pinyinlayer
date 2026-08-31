@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X, Eye, CheckCircle2, XCircle, RotateCcw, Check } from 'lucide-react';
+import { X, Eye, CheckCircle2, AlertCircle, RotateCcw, Check } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 
@@ -166,25 +166,20 @@ export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus
           </div>
 
           {/* Character Display Area */}
-          <div className="my-auto flex flex-col items-center justify-center text-center px-4 w-full max-w-3xl">
-            <p className="font-reading text-7xl sm:text-8xl md:text-9xl font-normal leading-none tracking-tight text-ink dark:text-slate-50 select-none">
+          <div className="my-auto flex flex-col items-center justify-center text-center px-4 w-full max-w-4xl">
+            <p className="font-reading text-8xl sm:text-9xl md:text-[10rem] lg:text-[11.5rem] font-medium leading-none tracking-tight text-ink dark:text-slate-50 select-none">
               {currentCard.word}
             </p>
 
             {/* Answer Section */}
             {showAnswer ? (
-              <div className="mt-8 sm:mt-10 flex flex-col items-center gap-2 animate-fadeIn">
-                <p className="text-xl sm:text-2xl font-medium text-jade dark:text-sky-400">
+              <div className="mt-10 sm:mt-12 flex flex-col items-center gap-3 animate-fadeIn">
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-jade dark:text-sky-400">
                   {currentCard.pinyin}
                 </p>
                 {currentCard.definitions?.length > 0 && (
-                  <p className="max-w-md text-base sm:text-lg leading-relaxed text-ink-soft dark:text-slate-300">
+                  <p className="max-w-xl text-lg sm:text-xl lg:text-2xl font-medium leading-relaxed text-ink dark:text-slate-200">
                     {currentCard.definitions.join('; ')}
-                  </p>
-                )}
-                {currentCard.sentence && (
-                  <p className="mt-3 max-w-lg text-sm text-ink-faint italic dark:text-slate-400">
-                    "{currentCard.sentence}"
                   </p>
                 )}
               </div>
@@ -192,27 +187,27 @@ export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus
               <button
                 type="button"
                 onClick={() => setShowAnswer(true)}
-                className="mt-8 sm:mt-10 inline-flex items-center gap-2 rounded-full border border-rule bg-surface px-5 py-2.5 text-sm font-semibold text-ink-soft shadow-sm transition hover:bg-surface-dim hover:text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="mt-10 sm:mt-12 inline-flex items-center gap-2.5 rounded-full border border-rule bg-surface px-6 py-3.5 text-base sm:text-lg font-bold text-ink shadow-sm transition hover:bg-surface-dim cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
               >
-                <Eye size={16} />
+                <Eye size={20} />
                 <span>Show Definition & Pinyin</span>
-                <kbd className="hidden sm:inline-block rounded bg-surface-dim px-1.5 py-0.5 text-[10px] font-sans text-ink-faint dark:bg-slate-800 dark:text-slate-400">
+                <kbd className="hidden sm:inline-block rounded bg-surface-dim px-2 py-0.5 text-xs font-sans text-ink-faint dark:bg-slate-800 dark:text-slate-400">
                   Space
                 </kbd>
               </button>
             )}
           </div>
 
-          {/* Action Buttons: Fail vs Pass */}
-          <div className="w-full max-w-md flex items-center justify-center gap-4 pt-4">
+          {/* Action Buttons: Needs Review vs Pass */}
+          <div className="w-full max-w-lg flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3.5 pt-4">
             <button
               type="button"
               onClick={() => handleNextCard('failed')}
-              className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border border-seal/30 bg-seal-soft/40 px-6 py-3.5 text-base font-semibold text-seal transition hover:bg-seal hover:text-white cursor-pointer active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-700 dark:hover:text-white"
+              className="flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl border-2 border-seal bg-seal px-6 py-4 text-lg font-bold text-white shadow-sm transition hover:bg-seal/90 active:scale-[0.98] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
             >
-              <XCircle size={20} />
+              <AlertCircle size={22} />
               <span>Needs Review</span>
-              <kbd className="hidden sm:inline-block rounded bg-seal/10 px-1.5 py-0.5 text-[10px] font-sans text-seal dark:bg-rose-900/40 dark:text-rose-300">
+              <kbd className="hidden sm:inline-block rounded bg-white/20 px-2 py-0.5 text-xs font-sans text-white">
                 1 / ←
               </kbd>
             </button>
@@ -220,11 +215,11 @@ export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus
             <button
               type="button"
               onClick={() => handleNextCard('passed')}
-              className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl border border-jade/30 bg-jade-soft/40 px-6 py-3.5 text-base font-semibold text-jade transition hover:bg-jade hover:text-white cursor-pointer active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-700 dark:hover:text-white"
+              className="flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl border-2 border-jade bg-jade px-6 py-4 text-lg font-bold text-white shadow-sm transition hover:bg-jade/90 active:scale-[0.98] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
             >
-              <CheckCircle2 size={20} />
+              <CheckCircle2 size={22} />
               <span>Pass</span>
-              <kbd className="hidden sm:inline-block rounded bg-jade/10 px-1.5 py-0.5 text-[10px] font-sans text-jade dark:bg-emerald-900/40 dark:text-emerald-300">
+              <kbd className="hidden sm:inline-block rounded bg-white/20 px-2 py-0.5 text-xs font-sans text-white">
                 2 / →
               </kbd>
             </button>

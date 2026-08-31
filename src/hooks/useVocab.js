@@ -3,7 +3,7 @@ import { useLocalStorage } from './useLocalStorage';
 
 /**
  * Manages the personal vocab list (saved words + phrases), persisted to
- * localStorage. Each entry: { word, pinyin, definitions, sentence, savedAt }.
+ * localStorage. Each entry: { word, pinyin, definitions, savedAt, status }.
  */
 export function useVocab() {
   const [vocab, setVocab] = useLocalStorage('pinyinlayer:vocab', []);
@@ -14,10 +14,11 @@ export function useVocab() {
 
   const add = useCallback(
     (entry) => {
+      const { sentence, ...rest } = entry;
       setVocab((prev) =>
         prev.some((v) => v.word === entry.word)
           ? prev
-          : [{ ...entry, savedAt: Date.now() }, ...prev]
+          : [{ ...rest, savedAt: Date.now() }, ...prev]
       );
     },
     [setVocab]
