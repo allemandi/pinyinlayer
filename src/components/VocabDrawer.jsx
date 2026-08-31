@@ -1,4 +1,4 @@
-import { useState, useId } from 'react';
+import { useState, useEffect, useId } from 'react';
 import { X, Trash2, Stamp, Settings, Play, Check, XCircle, CheckCircle2, RotateCcw } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
@@ -142,6 +142,17 @@ export default function VocabDrawer({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [cardOrder, setCardOrder] = useState('sequential'); // 'sequential' | 'shuffled'
 
+  // Ensure all vocab items are selected by default when opening drawer or adding items
+  useEffect(() => {
+    if (isOpen && vocab.length > 0) {
+      setSelectedWords((prev) => {
+        const next = new Set(prev);
+        vocab.forEach((v) => next.add(v.word));
+        return next;
+      });
+    }
+  }, [isOpen, vocab]);
+
   const handleSelectAll = () => {
     setSelectedWords(new Set(vocab.map((v) => v.word)));
   };
@@ -208,7 +219,7 @@ export default function VocabDrawer({
           isOpen ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:translate-x-full'
         }`}
         aria-hidden={!isOpen}
-        inert={!isOpen ? '' : undefined}
+        inert={!isOpen || undefined}
       >
         {/* Drawer Header */}
         <div className="flex items-center justify-between border-b border-rule px-5 py-4">

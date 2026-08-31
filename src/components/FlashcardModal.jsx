@@ -199,15 +199,15 @@ export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus
           </div>
 
           {/* Action Buttons: Needs Review vs Pass */}
-          <div className="w-full max-w-lg flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3.5 pt-4">
+          <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
             <button
               type="button"
               onClick={() => handleNextCard('failed')}
-              className="flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl border-2 border-seal bg-seal px-6 py-4 text-lg font-bold text-white shadow-sm transition hover:bg-seal/90 active:scale-[0.98] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
+              className="w-full h-14 sm:h-16 inline-flex items-center justify-center gap-2.5 whitespace-nowrap rounded-2xl border-2 border-seal bg-seal px-5 sm:px-6 py-3.5 text-base sm:text-lg font-bold text-white shadow-sm transition hover:bg-seal/90 active:scale-[0.98] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-seal"
             >
-              <AlertCircle size={22} />
-              <span>Needs Review</span>
-              <kbd className="hidden sm:inline-block rounded bg-white/20 px-2 py-0.5 text-xs font-sans text-white">
+              <AlertCircle size={22} className="shrink-0" />
+              <span className="whitespace-nowrap">Needs Review</span>
+              <kbd className="hidden sm:inline-block rounded bg-white/20 px-2 py-0.5 text-xs font-sans text-white shrink-0">
                 1 / ←
               </kbd>
             </button>
@@ -215,11 +215,11 @@ export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus
             <button
               type="button"
               onClick={() => handleNextCard('passed')}
-              className="flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl border-2 border-jade bg-jade px-6 py-4 text-lg font-bold text-white shadow-sm transition hover:bg-jade/90 active:scale-[0.98] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+              className="w-full h-14 sm:h-16 inline-flex items-center justify-center gap-2.5 whitespace-nowrap rounded-2xl border-2 border-jade bg-jade px-5 sm:px-6 py-3.5 text-base sm:text-lg font-bold text-white shadow-sm transition hover:bg-jade/90 active:scale-[0.98] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
             >
-              <CheckCircle2 size={22} />
-              <span>Pass</span>
-              <kbd className="hidden sm:inline-block rounded bg-white/20 px-2 py-0.5 text-xs font-sans text-white">
+              <CheckCircle2 size={22} className="shrink-0" />
+              <span className="whitespace-nowrap">Pass</span>
+              <kbd className="hidden sm:inline-block rounded bg-white/20 px-2 py-0.5 text-xs font-sans text-white shrink-0">
                 2 / →
               </kbd>
             </button>

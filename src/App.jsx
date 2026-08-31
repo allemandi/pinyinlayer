@@ -54,24 +54,24 @@ export default function App() {
     <div className="flex h-[100dvh] flex-col bg-paper dark:bg-slate-950">
       <header className="flex flex-row items-center justify-between gap-4 border-b border-rule bg-surface px-4 py-3 shadow-sm shadow-black/5 sm:px-6">
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-jade-soft text-jade shadow-inner shadow-black/10 sm:h-11 sm:w-11">
-            <Layers size={22} />
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-jade-soft text-jade shadow-inner shadow-black/10 sm:h-12 sm:w-12">
+            <Layers size={24} />
           </div>
           <div>
-            <h1 className="font-display text-base font-semibold tracking-tight text-ink sm:text-lg">PinyinLayer</h1>
-            <p className="text-xs text-ink-faint sm:text-sm">Reading assistance, layered.</p>
+            <h1 className="font-display text-lg font-bold tracking-tight text-ink sm:text-xl">PinyinLayer</h1>
+            <p className="text-xs sm:text-sm font-medium text-ink-soft">Reading assistance, layered.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
             title={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3.5 py-2 text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11"
           >
-            {themeMode === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+            {themeMode === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
             <span>{themeMode === 'dark' ? 'Light' : 'Dark'}</span>
           </button>
 
@@ -80,9 +80,9 @@ export default function App() {
             onClick={() => setHelpOpen(true)}
             title="Help & Information"
             aria-label="Help & Information"
-            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3 py-1.5 text-xs font-semibold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3.5 py-2 text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11"
           >
-            <HelpCircle size={14} />
+            <HelpCircle size={17} />
             <span>Help</span>
           </button>
         </div>
@@ -125,7 +125,7 @@ export default function App() {
         }
       />
 
-      <footer className="flex shrink-0 flex-row items-center justify-center gap-6 border-t border-rule bg-surface/95 px-4 py-3 text-xs text-ink-faint dark:border-slate-800 dark:bg-slate-950 sm:px-6">
+      <footer className="flex shrink-0 flex-row items-center justify-center gap-6 border-t border-rule bg-surface/95 px-4 py-3 text-sm font-medium text-ink-soft dark:border-slate-800 dark:bg-slate-950 sm:px-6">
         <span>&copy; {new Date().getFullYear()} allemandi</span>
         <a
           href="https://github.com/allemandi/pinyinlayer"
