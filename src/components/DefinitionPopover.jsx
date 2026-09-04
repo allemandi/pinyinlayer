@@ -10,9 +10,31 @@ import hskWords from '../data/hskWords.js';
 const WIDTH = 380; // Desktop width for popover
 const MARGIN = 16;
 
-function clampPosition(rect) {
-  const left = Math.min(Math.max(rect.left, MARGIN), window.innerWidth - WIDTH - MARGIN);
-  const top = Math.min(rect.bottom + 10, window.innerHeight - MARGIN - 280);
+function computePopoverPosition(rect, popoverElement) {
+  if (typeof window === 'undefined' || !rect) {
+    return { left: MARGIN, top: MARGIN };
+  }
+
+  const popoverHeight = popoverElement ? popoverElement.offsetHeight : 320;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  const left = Math.min(Math.max(rect.left, MARGIN), viewportWidth - WIDTH - MARGIN);
+
+  // Determine vertical position: default below the token
+  let top = rect.bottom + 10;
+
+  // If popover extends off the bottom of the screen, flip above the token if there's enough space
+  if (top + popoverHeight > viewportHeight - MARGIN) {
+    const topAbove = rect.top - popoverHeight - 10;
+    if (topAbove >= MARGIN) {
+      top = topAbove;
+    } else {
+      // Clamped fallback if fitting neither above nor below perfectly
+      top = Math.max(MARGIN, viewportHeight - popoverHeight - MARGIN);
+    }
+  }
+
   return { left: Math.max(left, MARGIN), top: Math.max(top, MARGIN) };
 }
 
@@ -32,7 +54,8 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
 
   const [simpWord, setSimpWord] = useState('');
   const [tradWord, setTradWord] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 640 : false));
+  const [position, setPosition] = useState({ left: MARGIN, top: MARGIN });
 
   // Check if we are on a mobile view-port to render a centered bottom-sheet card
   useEffect(() => {
@@ -40,7 +63,6 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     const handleResize = () => {
       setIsMobile(window.innerWidth < 640);
     };
-    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -92,6 +114,19 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     };
   }, [target]);
 
+  // Recalculate popover placement when content or target changes or window resizes
+  useEffect(() => {
+    if (!target || isMobile) return;
+
+    const updatePosition = () => {
+      setPosition(computePopoverPosition(target.rect, popoverRef.current));
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    return () => window.removeEventListener('resize', updatePosition);
+  }, [target, isMobile, loading, senses, translation, popoverRef]);
+
   if (!target) return null;
 
   const handleTranslate = async () => {
@@ -108,19 +143,18 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
 
   const pinyinText = target.pinyin.join(' ');
   const saved = isSaved(target.text);
-  const { left, top } = clampPosition(target.rect);
 
   // Render centered bottom sheet style on mobile, custom-positioned popover on desktop
   const popoverStyle = isMobile
     ? { left: '50%', transform: 'translateX(-50%)', bottom: '1.25rem', top: 'auto' }
-    : { left, top };
+    : { left: position.left, top: position.top };
 
   return (
     <>
       <div className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]" onClick={onClose} />
       <div
         ref={popoverRef}
-        className="fixed z-40 w-[calc(100vw-2.5rem)] max-h-[85vh] overflow-y-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all dark:border-slate-700 dark:bg-slate-950"
+        className="fixed z-40 w-[calc(100vw-2.5rem)] max-h-[calc(100vh-2rem)] overflow-y-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all dark:border-slate-700 dark:bg-slate-950"
         style={popoverStyle}
         role="dialog"
         aria-modal="true"
@@ -182,9 +216,9 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3" aria-live="polite">
           {loading ? (
-            <div className="rounded-3xl bg-surface-dim p-4 dark:bg-slate-900 animate-pulse">
+            <div className="rounded-3xl bg-surface-dim p-4 dark:bg-slate-900 animate-pulse" aria-busy="true">
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-ink-faint dark:text-slate-500">Looking up definitions</p>
               <p className="mt-2 text-sm leading-6 text-ink-soft dark:text-slate-400">Fetching dictionary results for this token.</p>
             </div>
@@ -211,7 +245,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
         </div>
 
         <div className="mt-5 border-t border-rule pt-4 dark:border-slate-700">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3" aria-live="polite">
             <button
               type="button"
               onClick={handleTranslate}
