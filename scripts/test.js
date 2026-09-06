@@ -4,6 +4,7 @@ import { shouldShowPinyin } from '../src/utils/pinyinVisibility.js';
 import { convertTextAsync, convertWordAsync } from '../src/utils/chineseConversion.js';
 import { lookupWord } from '../src/utils/lookupWord.js';
 import hskWords from '../src/data/hskWords.js';
+import { encodeDeckPayload, decodeDeckPayload, getDeckShareUrl } from '../src/utils/deckShare.js';
 
 async function run() {
   // Original checks
@@ -42,13 +43,13 @@ async function run() {
 
   // Character formatting & conversion tests
   const simplifiedInput = '这是一个繁体字测试的句子';
-  const traditionalInput = '這是一個繁體字測試的句子';
+  const traditionalInput = '資訊是一個繁體字測試的句子';
 
   const toTraditional = await convertTextAsync(simplifiedInput, 'traditional');
   assert.strictEqual(toTraditional, '這是一個繁體字測試的句子', 'convertTextAsync should convert Simplified to Traditional');
 
   const toSimplified = await convertTextAsync(traditionalInput, 'simplified');
-  assert.strictEqual(toSimplified, '这是一个繁体字测试的句子', 'convertTextAsync should convert Traditional to Simplified');
+  assert.strictEqual(toSimplified, '资讯是一个繁体字测试的句子', 'convertTextAsync should convert Traditional to Simplified');
 
   const originalText = await convertTextAsync(traditionalInput, 'original');
   assert.strictEqual(originalText, traditionalInput, 'convertTextAsync with original format should not alter text');
@@ -91,6 +92,83 @@ async function run() {
 
   clearStatuses();
   assert.strictEqual(mockVocab.find((v) => v.word === '你好').status, undefined, 'clearStatuses should remove status tag from vocab items');
+
+  // Deck Serialization and Sharing Tests
+  const sampleDeck = {
+    id: 'deck_123',
+    name: 'HSK 4 Prep',
+    words: [
+      { word: '测试', pinyin: 'cè shì', definitions: ['to test', 'examination'] },
+      { word: '学习', pinyin: 'xué xí', definitions: ['to study'] },
+    ],
+  };
+
+  const encodedPayload = encodeDeckPayload(sampleDeck);
+  assert.ok(typeof encodedPayload === 'string' && encodedPayload.length > 0, 'encodeDeckPayload should return a non-empty string');
+
+  const shareUrl = getDeckShareUrl(sampleDeck);
+  assert.ok(shareUrl.includes('?deck='), 'getDeckShareUrl should construct a full share URL containing ?deck= parameter');
+
+  const decodedFromPayload = decodeDeckPayload(encodedPayload);
+  assert.strictEqual(decodedFromPayload.name, 'HSK 4 Prep', 'decodeDeckPayload should accurately recover deck name');
+  assert.strictEqual(decodedFromPayload.words.length, 2, 'decodeDeckPayload should recover all words');
+  assert.strictEqual(decodedFromPayload.words[0].word, '测试', 'decodeDeckPayload should recover first word');
+
+  const decodedFromUrl = decodeDeckPayload(shareUrl);
+  assert.strictEqual(decodedFromUrl.name, 'HSK 4 Prep', 'decodeDeckPayload should parse full share URL');
+  assert.strictEqual(decodedFromUrl.words.length, 2, 'decodeDeckPayload should recover words from full share URL');
+
+  // Security Sanitization & Protocol Locking Tests
+  const maliciousDeck = {
+    name: '<script>alert("XSS")</script> Malicious Deck',
+    words: [
+      {
+        word: '<img src=x onerror=alert(1)>测试',
+        pinyin: 'cè<script> shì',
+        definitions: ['<b onmouseover=alert(1)>def1</b>', 'normal def'],
+      },
+    ],
+  };
+
+  const encodedMalicious = encodeDeckPayload(maliciousDeck);
+  const decodedMalicious = decodeDeckPayload(encodedMalicious);
+  assert.ok(!decodedMalicious.name.includes('<script>'), 'decodeDeckPayload should strip HTML tags from deck name');
+  assert.ok(!decodedMalicious.words[0].word.includes('<img'), 'decodeDeckPayload should sanitize word fields');
+  assert.ok(!decodedMalicious.words[0].definitions[0].includes('<b'), 'decodeDeckPayload should sanitize definition HTML tags');
+
+  // Protocol locking test
+  const jsUri = 'javascript:alert(1)?deck=' + encodedPayload;
+  assert.strictEqual(decodeDeckPayload(jsUri), null, 'decodeDeckPayload should reject javascript: protocol links');
+
+  // Multi-Deck Copying / Moving Operations Test
+  let mockDecks = [
+    {
+      id: 'default',
+      name: 'Default Deck',
+      words: [{ word: '苹果', pinyin: 'píng guǒ' }, { word: '香蕉', pinyin: 'xiāng jiāo' }],
+    },
+    {
+      id: 'deck_hsk3',
+      name: 'HSK 3 Fruits',
+      words: [],
+    },
+  ];
+
+  // Copy word '苹果' from default deck to deck_hsk3
+  const sourceDeck = mockDecks.find((d) => d.id === 'default');
+  const targetDeck = mockDecks.find((d) => d.id === 'deck_hsk3');
+  const wordToCopy = sourceDeck.words.find((w) => w.word === '苹果');
+  targetDeck.words.push(wordToCopy);
+
+  assert.strictEqual(targetDeck.words.length, 1, 'Copying word should add item to target deck');
+  assert.strictEqual(sourceDeck.words.length, 2, 'Copying word should leave item in source deck');
+
+  // Move word '香蕉' from default deck to deck_hsk3
+  sourceDeck.words = sourceDeck.words.filter((w) => w.word !== '香蕉');
+  targetDeck.words.push({ word: '香蕉', pinyin: 'xiāng jiāo' });
+
+  assert.strictEqual(sourceDeck.words.length, 1, 'Moving word should remove item from source deck');
+  assert.strictEqual(targetDeck.words.length, 2, 'Moving word should add item to target deck');
 
   console.log('✅ All minimal tests passed');
 }
