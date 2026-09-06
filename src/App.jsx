@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Layers, Moon, Sun, HelpCircle } from 'lucide-react';
+import { Layers, Moon, Sun, HelpCircle, FolderInput, X } from 'lucide-react';
 import AppLayout from './components/AppLayout.jsx';
 import InputPanel from './components/InputPanel.jsx';
 import Controls from './components/Controls.jsx';
@@ -11,6 +11,9 @@ import HelpModal from './components/HelpModal.jsx';
 import { cleanText } from './utils/cleanText.js';
 import { useVocab } from './hooks/useVocab.js';
 import { useLocalStorage } from './hooks/useLocalStorage.js';
+import { decodeDeckPayload } from './utils/deckShare.js';
+import { useEscapeKey } from './hooks/useEscapeKey.js';
+import { useFocusTrap } from './hooks/useFocusTrap.js';
 
 export default function App() {
   const [rawText, setRawText] = useState('');
@@ -25,16 +28,68 @@ export default function App() {
   const [popoverTarget, setPopoverTarget] = useState(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [flashcardOpen, setFlashcardOpen] = useState(false);
-  const [activeDeck, setActiveDeck] = useState([]);
+  const [studyDeck, setStudyDeck] = useState([]);
+  const [pendingImportDeck, setPendingImportDeck] = useState(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', themeMode === 'dark');
   }, [themeMode]);
 
-  const { vocab, toggle, remove, isSaved, tagStatus, clearStatuses } = useVocab();
+  const {
+    decks,
+    defaultDeckId,
+    activeDeckId,
+    activeDeck,
+    vocab,
+    toggle,
+    remove,
+    isSaved,
+    tagStatus,
+    clearStatuses,
+    createDeck,
+    renameDeck,
+    deleteDeck,
+    setDefaultDeckId,
+    setActiveDeckId,
+    copyWords,
+    moveWords,
+    removeWords,
+    importDeckPayload,
+  } = useVocab();
+
+  // Auto-detect shared deck link query parameter on startup
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const deckParam = searchParams.get('deck');
+    if (deckParam) {
+      const decoded = decodeDeckPayload(deckParam);
+      if (decoded) {
+        setPendingImportDeck(decoded);
+      }
+    }
+  }, []);
+
+  const handleConfirmImport = () => {
+    if (pendingImportDeck) {
+      importDeckPayload(pendingImportDeck);
+      setPendingImportDeck(null);
+      setVocabOpen(true);
+      if (typeof window !== 'undefined' && window.history) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  };
+
+  const handleCancelImport = () => {
+    setPendingImportDeck(null);
+    if (typeof window !== 'undefined' && window.history) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  };
 
   const handleStartStudy = (deck) => {
-    setActiveDeck(deck);
+    setStudyDeck(deck);
     setFlashcardOpen(true);
   };
 
@@ -49,6 +104,9 @@ export default function App() {
   const handleTapToken = (token, rect) => {
     setPopoverTarget({ text: token.text, pinyin: token.pinyin, sentence: token.sentence, rect });
   };
+
+  useEscapeKey(handleCancelImport, Boolean(pendingImportDeck));
+  const importModalRef = useFocusTrap(Boolean(pendingImportDeck));
 
   return (
     <div className="flex h-[100dvh] flex-col bg-paper dark:bg-slate-950">
@@ -120,6 +178,7 @@ export default function App() {
               onChangeTextSize={setTextSize}
               vocabCount={vocab.length}
               onOpenVocab={() => setVocabOpen(true)}
+              onImportDeck={importDeckPayload}
             />
           </div>
         }
@@ -150,20 +209,90 @@ export default function App() {
       <VocabDrawer
         isOpen={vocabOpen}
         onClose={() => setVocabOpen(false)}
-        vocab={vocab}
+        decks={decks}
+        activeDeck={activeDeck}
+        defaultDeckId={defaultDeckId}
+        onSetActiveDeckId={setActiveDeckId}
+        onSetDefaultDeckId={setDefaultDeckId}
+        onCreateDeck={createDeck}
+        onRenameDeck={renameDeck}
+        onDeleteDeck={deleteDeck}
+        onCopyWords={copyWords}
+        onMoveWords={moveWords}
+        onRemoveWords={removeWords}
         onRemove={remove}
         onStartStudy={handleStartStudy}
         onClearStatuses={clearStatuses}
+        onImportDeck={importDeckPayload}
       />
 
       <FlashcardModal
         isOpen={flashcardOpen}
         onClose={() => setFlashcardOpen(false)}
-        deck={activeDeck}
+        deck={studyDeck}
         onTagStatus={tagStatus}
       />
 
       <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
+
+      {/* URL Import Confirmation Modal */}
+      {pendingImportDeck && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/30 backdrop-blur-xs">
+          <div
+            ref={importModalRef}
+            className="w-full max-w-sm rounded-2xl border border-rule bg-surface p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Import Shared Deck"
+          >
+            <div className="flex items-center justify-between border-b border-rule pb-3 dark:border-slate-800">
+              <h3 className="font-display text-base font-bold text-ink dark:text-slate-100 flex items-center gap-2">
+                <FolderInput size={20} className="text-jade" />
+                Import Shared Deck
+              </h3>
+              <button
+                type="button"
+                onClick={handleCancelImport}
+                aria-label="Close dialog"
+                className="rounded-full p-1 text-ink-soft hover:bg-surface-dim hover:text-ink cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <p className="text-sm font-semibold text-ink dark:text-slate-200">
+                You opened a link to import a vocabulary deck:
+              </p>
+              <div className="rounded-xl border border-rule bg-surface-dim p-3 dark:border-slate-800 dark:bg-slate-950">
+                <p className="font-bold text-jade dark:text-sky-400 text-base">
+                  {pendingImportDeck.name}
+                </p>
+                <p className="text-xs text-ink-soft dark:text-slate-400 mt-0.5">
+                  Contains {pendingImportDeck.words?.length || 0} vocabulary words
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleCancelImport}
+                className="rounded-xl border border-rule px-4 py-2 text-xs font-semibold text-ink-soft hover:bg-surface-dim cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmImport}
+                className="rounded-xl bg-jade px-4 py-2 text-xs font-bold text-white shadow-xs cursor-pointer hover:bg-jade/90"
+              >
+                Import & View Deck
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
