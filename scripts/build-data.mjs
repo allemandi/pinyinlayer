@@ -2,21 +2,29 @@
 // Merges CC-CEDICT (definitions) with the Complete HSK Vocabulary dataset
 // (HSK levels) into two lean static JSON files consumed by the app:
 //   src/data/dict.json      -> { "word": [{ t?, p, d:[...] }] }
-//   src/data/hskWords.json  -> { "word": 1..6 }
+//   src/data/hskWords.js    -> export default { "word": 1..6 }
 //
 // The dictionary is trimmed to HSK vocabulary only — enough for quick
 // "how is this pronounced, what does it mean" scanning without shipping
-// the full 120k-entry CC-CEDICT payload.
+// the full 120k-entry CC-CEDICT payload. Any HSK headwords missing in
+// CC-CEDICT fall back to definitions and pinyin from the HSK dataset.
 //
 // Run with: npm run build:data
-import { writeFileSync } from 'node:fs';
-import cedict from '../node_modules/cedict-json/cedict.json' with { type: 'json' };
+import { writeFileSync, readFileSync } from 'node:fs';
+import { pinyin } from 'pinyin-pro';
+
+const cedict = JSON.parse(readFileSync(new URL('../node_modules/cedict-json/cedict.json', import.meta.url)));
 
 const HSK_URL =
   'https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/complete.min.json';
 
 console.log('Fetching HSK level data...');
 const hsk = await fetch(HSK_URL).then((res) => res.json());
+
+const hskMap = new Map();
+for (const entry of hsk) {
+  if (entry.s) hskMap.set(entry.s, entry);
+}
 
 const levelOf = {};
 for (const entry of hsk) {
@@ -46,6 +54,23 @@ for (const e of cedict) {
   (dict[word] ||= []).push(sense);
 }
 
+// Fallback: Populate definitions/pinyin/traditional for any HSK headwords missing from CC-CEDICT
+let addedFromHskCount = 0;
+for (const word of Object.keys(levelOf)) {
+  if (!dict[word]) {
+    const entry = hskMap.get(word);
+    if (entry && entry.f && entry.f.length > 0) {
+      const form = entry.f[0];
+      const pinyinFormatted = pinyin(word, { toneType: 'symbol' });
+      const meaning = form.m ? form.m.join('; ') : '';
+      const sense = { p: pinyinFormatted, d: [meaning] };
+      if (form.t && form.t !== word) sense.t = form.t;
+      dict[word] = [sense];
+      addedFromHskCount++;
+    }
+  }
+}
+
 for (const word of Object.keys(dict)) {
   dict[word] = dict[word].slice(0, 1);
 }
@@ -60,3 +85,4 @@ export default ${JSON.stringify(levelOf, null, 2)};
 
 console.log('dict entries:', Object.keys(dict).length);
 console.log('hsk-leveled words:', Object.keys(levelOf).length);
+console.log('added from HSK fallback:', addedFromHskCount);
