@@ -1,10 +1,10 @@
 // One-time / re-runnable data-build script (not shipped to the browser).
 // Merges CC-CEDICT (definitions) with the Complete HSK Vocabulary dataset
-// (HSK levels) into two lean static JSON files consumed by the app:
+// (HSK levels 1-7+) into two lean static JSON files consumed by the app:
 //   src/data/dict.json      -> { "word": [{ t?, p, d:[...] }] }
-//   src/data/hskWords.js    -> export default { "word": 1..6 }
+//   src/data/hskWords.js    -> export default { "word": 1..7 }
 //
-// The dictionary is trimmed to HSK vocabulary only — enough for quick
+// The dictionary is trimmed to HSK vocabulary — enough for quick
 // "how is this pronounced, what does it mean" scanning without shipping
 // the full 120k-entry CC-CEDICT payload. Any HSK headwords missing in
 // CC-CEDICT fall back to definitions and pinyin from the HSK dataset.
@@ -30,7 +30,7 @@ const levelOf = {};
 for (const entry of hsk) {
   const nums = (entry.l || [])
     .map((code) => parseInt(code.slice(1), 10))
-    .filter((n) => n >= 1 && n <= 6);
+    .filter((n) => n >= 1 && n <= 7);
   if (!nums.length) continue;
   const best = Math.min(...nums);
   const word = entry.s;
@@ -61,7 +61,7 @@ for (const word of Object.keys(levelOf)) {
     const entry = hskMap.get(word);
     if (entry && entry.f && entry.f.length > 0) {
       const form = entry.f[0];
-      const pinyinFormatted = pinyin(word, { toneType: 'symbol' });
+      const pinyinFormatted = pinyin(word, { toneType: 'num' });
       const meaning = form.m ? form.m.join('; ') : '';
       const sense = { p: pinyinFormatted, d: [meaning] };
       if (form.t && form.t !== word) sense.t = form.t;
