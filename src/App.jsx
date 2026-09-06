@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Layers, Moon, Sun, HelpCircle, FolderInput, X } from 'lucide-react';
+import { Layers, Moon, Sun, HelpCircle, FolderInput, X, ShieldCheck } from 'lucide-react';
 import AppLayout from './components/AppLayout.jsx';
 import InputPanel from './components/InputPanel.jsx';
 import Controls from './components/Controls.jsx';
@@ -235,59 +235,70 @@ export default function App() {
 
       <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
 
-      {/* URL Import Confirmation Modal */}
+      {/* Production-Grade URL Import Confirmation Modal */}
       {pendingImportDeck && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/30 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity">
           <div
             ref={importModalRef}
-            className="w-full max-w-sm rounded-2xl border border-rule bg-surface p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+            className="w-full max-w-sm rounded-3xl border border-rule bg-surface p-5 sm:p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
             role="dialog"
             aria-modal="true"
             aria-label="Import Shared Deck"
           >
-            <div className="flex items-center justify-between border-b border-rule pb-3 dark:border-slate-800">
-              <h3 className="font-display text-base font-bold text-ink dark:text-slate-100 flex items-center gap-2">
-                <FolderInput size={20} className="text-jade" />
-                Import Shared Deck
-              </h3>
+            <div className="flex items-center justify-between border-b border-rule pb-3.5 dark:border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-jade-soft text-jade dark:bg-emerald-950 dark:text-emerald-300">
+                  <FolderInput size={18} />
+                </div>
+                <div>
+                  <h3 className="font-display text-base font-bold text-ink dark:text-slate-100">
+                    Import Shared Deck
+                  </h3>
+                  <p className="text-[11px] text-ink-faint flex items-center gap-1">
+                    <ShieldCheck size={12} className="text-jade" />
+                    Sanitized locally & saved
+                  </p>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={handleCancelImport}
                 aria-label="Close dialog"
-                className="rounded-full p-1 text-ink-soft hover:bg-surface-dim hover:text-ink cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-rule bg-surface text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <div className="mt-4 space-y-2">
-              <p className="text-sm font-semibold text-ink dark:text-slate-200">
-                You opened a link to import a vocabulary deck:
+            <div className="mt-4 space-y-3">
+              <p className="text-xs font-semibold text-ink dark:text-slate-200">
+                You opened a share link for a vocabulary deck:
               </p>
-              <div className="rounded-xl border border-rule bg-surface-dim p-3 dark:border-slate-800 dark:bg-slate-950">
-                <p className="font-bold text-jade dark:text-sky-400 text-base">
+              <div className="rounded-2xl border border-rule bg-surface-dim p-4 dark:border-slate-800 dark:bg-slate-950">
+                <p className="font-bold text-jade dark:text-sky-400 text-base leading-tight">
                   {pendingImportDeck.name}
                 </p>
-                <p className="text-xs text-ink-soft dark:text-slate-400 mt-0.5">
+                <p className="text-xs font-medium text-ink-soft dark:text-slate-400 mt-1">
                   Contains {pendingImportDeck.words?.length || 0} vocabulary words
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end gap-2">
+            <div className="mt-6 grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={handleCancelImport}
-                className="rounded-xl border border-rule px-4 py-2 text-xs font-semibold text-ink-soft hover:bg-surface-dim cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                className="h-11 inline-flex items-center justify-center rounded-2xl border border-rule bg-surface text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleConfirmImport}
-                className="rounded-xl bg-jade px-4 py-2 text-xs font-bold text-white shadow-xs cursor-pointer hover:bg-jade/90"
+                className="h-11 inline-flex items-center justify-center gap-1.5 rounded-2xl bg-jade text-xs font-bold text-white shadow-sm hover:bg-jade/90 transition cursor-pointer"
               >
-                Import & View Deck
+                <FolderInput size={15} />
+                <span>Import Deck</span>
               </button>
             </div>
           </div>

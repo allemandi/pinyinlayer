@@ -16,13 +16,15 @@ import {
   Copy,
   MoveRight,
   FolderInput,
+  ShieldCheck,
+  Layers,
 } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 import { getDeckShareUrl, decodeDeckPayload } from '../utils/deckShare.js';
 
 /**
- * Modal to select destination deck for Copying or Moving selected words.
+ * Production-grade Modal to select destination deck for Copying or Moving selected words.
  */
 function DeckTargetModal({
   isOpen,
@@ -45,6 +47,7 @@ function DeckTargetModal({
       const available = decks.filter((d) => (mode === 'move' ? d.id !== currentDeckId : true));
       if (available.length > 0) {
         setTargetDeckId(available[0].id);
+        setIsCreatingNew(false);
       } else {
         setIsCreatingNew(true);
       }
@@ -53,7 +56,8 @@ function DeckTargetModal({
 
   if (!isOpen) return null;
 
-  const handleAction = () => {
+  const handleAction = (e) => {
+    e?.preventDefault();
     if (isCreatingNew) {
       if (!newDeckName.trim()) return;
       onConfirm({ isNew: true, newName: newDeckName.trim() });
@@ -64,39 +68,46 @@ function DeckTargetModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/30 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity">
       <div
         ref={modalRef}
-        className="w-full max-w-sm rounded-2xl border border-rule bg-surface p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+        className="w-full max-w-sm rounded-3xl border border-rule bg-surface p-5 sm:p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
         role="dialog"
         aria-modal="true"
         aria-label={`${mode === 'copy' ? 'Copy' : 'Move'} Words to Deck`}
       >
-        <div className="flex items-center justify-between border-b border-rule pb-3 dark:border-slate-800">
-          <h3 className="font-display text-base font-semibold text-ink dark:text-slate-100 flex items-center gap-2">
-            {mode === 'copy' ? <Copy size={18} className="text-jade" /> : <MoveRight size={18} className="text-jade" />}
-            {mode === 'copy' ? 'Copy' : 'Move'} {selectedCount} {selectedCount === 1 ? 'word' : 'words'}
-          </h3>
+        <div className="flex items-center justify-between border-b border-rule pb-3.5 dark:border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-jade-soft text-jade dark:bg-emerald-950 dark:text-emerald-300">
+              {mode === 'copy' ? <Copy size={18} /> : <MoveRight size={18} />}
+            </div>
+            <div>
+              <h3 className="font-display text-base font-bold text-ink dark:text-slate-100">
+                {mode === 'copy' ? 'Copy' : 'Move'} {selectedCount} {selectedCount === 1 ? 'Word' : 'Words'}
+              </h3>
+              <p className="text-[11px] text-ink-faint">Select or create a target deck</p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close dialog"
-            className="rounded-full p-1 text-ink-soft hover:bg-surface-dim hover:text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-rule bg-surface text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X size={16} />
           </button>
         </div>
 
-        <div className="mt-4 space-y-4">
+        <form onSubmit={handleAction} className="mt-4 space-y-4">
           {!isCreatingNew ? (
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-ink-faint dark:text-slate-400 mb-1.5">
-                Select Destination Deck
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400">
+                Destination Deck
               </label>
               <select
                 value={targetDeckId}
                 onChange={(e) => setTargetDeckId(e.target.value)}
-                className="w-full rounded-xl border border-rule bg-surface px-3 py-2 text-sm font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+                className="w-full h-11 rounded-2xl border border-rule bg-surface-dim px-3.5 text-sm font-semibold text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 cursor-pointer"
               >
                 {decks
                   .filter((d) => (mode === 'move' ? d.id !== currentDeckId : true))
@@ -110,61 +121,61 @@ function DeckTargetModal({
               <button
                 type="button"
                 onClick={() => setIsCreatingNew(true)}
-                className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-jade hover:underline cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-jade hover:underline cursor-pointer pt-1"
               >
                 <Plus size={14} />
                 Create a new deck instead
               </button>
             </div>
           ) : (
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-ink-faint dark:text-slate-400 mb-1.5">
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400">
                 New Deck Name
               </label>
               <input
                 type="text"
                 value={newDeckName}
                 onChange={(e) => setNewDeckName(e.target.value)}
-                placeholder="e.g., HSK 4 Verbs"
+                placeholder="e.g., HSK 4 Vocabulary"
                 autoFocus
-                className="w-full rounded-xl border border-rule bg-surface px-3 py-2 text-sm text-ink focus:border-jade focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="w-full h-11 rounded-2xl border border-rule bg-surface-dim px-3.5 text-sm font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
               />
               {decks.length > 1 && (
                 <button
                   type="button"
                   onClick={() => setIsCreatingNew(false)}
-                  className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:underline cursor-pointer dark:text-slate-400"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft hover:underline cursor-pointer pt-1 dark:text-slate-400"
                 >
-                  Select existing deck
+                  Choose from existing decks
                 </button>
               )}
             </div>
           )}
-        </div>
 
-        <div className="mt-6 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl border border-rule px-3.5 py-2 text-xs font-medium text-ink-soft hover:bg-surface-dim cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleAction}
-            className="rounded-xl bg-jade px-4 py-2 text-xs font-semibold text-white cursor-pointer hover:bg-jade/90"
-          >
-            {mode === 'copy' ? 'Copy Words' : 'Move Words'}
-          </button>
-        </div>
+          <div className="pt-2 grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-11 inline-flex items-center justify-center rounded-2xl border border-rule bg-surface px-4 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="h-11 inline-flex items-center justify-center gap-1.5 rounded-2xl bg-jade px-4 text-xs font-bold text-white shadow-sm hover:bg-jade/90 transition cursor-pointer"
+            >
+              {mode === 'copy' ? <Copy size={15} /> : <MoveRight size={15} />}
+              <span>{mode === 'copy' ? 'Copy Words' : 'Move Words'}</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 }
 
 /**
- * Settings & Import Modal for Vocab Decks.
+ * Settings & Security-Sanitized Deck Import Modal.
  */
 function VocabSettingsModal({
   isOpen,
@@ -191,13 +202,13 @@ function VocabSettingsModal({
     setImportSuccess('');
 
     if (!importInput.trim()) {
-      setImportError('Please paste a valid deck share link or payload code.');
+      setImportError('Please paste a valid deck share link or code payload.');
       return;
     }
 
     const imported = decodeDeckPayload(importInput);
     if (!imported) {
-      setImportError('Invalid or corrupted deck link. Please check the URL.');
+      setImportError('Invalid, corrupted, or oversized deck link. Please check the URL.');
       return;
     }
 
@@ -211,34 +222,42 @@ function VocabSettingsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/30 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity">
       <div
         ref={settingsRef}
-        className="w-full max-w-sm rounded-2xl border border-rule bg-surface p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
+        className="w-full max-w-sm rounded-3xl border border-rule bg-surface p-5 sm:p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
         role="dialog"
         aria-modal="true"
         aria-label="Vocab Deck Settings"
       >
-        <div className="flex items-center justify-between border-b border-rule pb-3 dark:border-slate-800">
-          <h3 className="font-display text-base font-semibold text-ink dark:text-slate-100 flex items-center gap-2">
-            <Settings size={18} className="text-jade" />
-            Vocab Deck Settings
-          </h3>
+        <div className="flex items-center justify-between border-b border-rule pb-3.5 dark:border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-jade-soft text-jade dark:bg-emerald-950 dark:text-emerald-300">
+              <Settings size={18} />
+            </div>
+            <div>
+              <h3 className="font-display text-base font-bold text-ink dark:text-slate-100">
+                Vocab Settings & Import
+              </h3>
+              <p className="text-[11px] text-ink-faint">Configure flashcards or import decks</p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close settings"
-            className="rounded-full p-1 text-ink-soft hover:bg-surface-dim hover:text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-rule bg-surface text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-200"
           >
             <X size={16} />
           </button>
         </div>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-5">
+          {/* Flashcard Sorting Order */}
           <div>
             <label
               htmlFor={orderSelectId}
-              className="block text-xs font-semibold uppercase tracking-wider text-ink-faint dark:text-slate-400 mb-1.5"
+              className="block text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400 mb-1.5"
             >
               Flashcard Order
             </label>
@@ -246,7 +265,7 @@ function VocabSettingsModal({
               id={orderSelectId}
               value={cardOrder}
               onChange={(e) => onChangeCardOrder(e.target.value)}
-              className="w-full rounded-xl border border-rule bg-surface px-3 py-2.5 text-sm font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 cursor-pointer"
+              className="w-full h-11 rounded-2xl border border-rule bg-surface-dim px-3.5 text-sm font-semibold text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 cursor-pointer"
             >
               <option value="sequential">Newest First (Default)</option>
               <option value="oldest">Oldest First</option>
@@ -256,64 +275,73 @@ function VocabSettingsModal({
             </select>
           </div>
 
-          <div className="pt-3 border-t border-rule dark:border-slate-800">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-ink-faint dark:text-slate-400 mb-1.5">
-              Import Shared Deck Link
-            </label>
+          {/* Import Shared Deck */}
+          <div className="pt-3 border-t border-rule/60 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400">
+                Import Shared Deck
+              </label>
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-jade dark:text-emerald-400">
+                <ShieldCheck size={12} />
+                Sanitized & Private
+              </span>
+            </div>
+
             <form onSubmit={handleImportSubmit} className="space-y-2">
               <input
                 type="text"
                 value={importInput}
                 onChange={(e) => setImportInput(e.target.value)}
                 placeholder="Paste deck link or code here..."
-                className="w-full rounded-xl border border-rule bg-surface px-3 py-2 text-xs text-ink focus:border-jade focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                className="w-full h-10 rounded-xl border border-rule bg-surface-dim px-3 text-xs font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
               />
               <button
                 type="submit"
-                className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-jade/10 border border-jade/30 px-3 py-1.5 text-xs font-semibold text-jade hover:bg-jade hover:text-white transition cursor-pointer"
+                className="w-full h-10 inline-flex items-center justify-center gap-1.5 rounded-xl bg-jade px-4 text-xs font-bold text-white shadow-xs hover:bg-jade/90 transition cursor-pointer"
               >
                 <FolderInput size={14} />
-                Import Deck
+                Import Deck Payload
               </button>
             </form>
 
             {importError && (
-              <p className="mt-1.5 text-[11px] font-medium text-seal dark:text-rose-400">
+              <p className="mt-2 text-[11px] font-semibold text-seal dark:text-rose-400">
                 {importError}
               </p>
             )}
             {importSuccess && (
-              <p className="mt-1.5 text-[11px] font-medium text-jade dark:text-emerald-400">
+              <p className="mt-2 text-[11px] font-semibold text-jade dark:text-emerald-400">
                 {importSuccess}
               </p>
             )}
           </div>
 
-          <div className="pt-3 border-t border-rule dark:border-slate-800">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-ink-faint dark:text-slate-400 mb-1.5">
+          {/* Pass/Fail Tags Reset */}
+          <div className="pt-3 border-t border-rule/60 dark:border-slate-800">
+            <label className="block text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400 mb-1.5">
               Pass / Fail Statuses
             </label>
 
             {showConfirmClear ? (
-              <div className="rounded-xl border border-seal/30 bg-seal-soft/30 p-3 text-xs dark:bg-rose-950/30">
-                <p className="font-medium text-seal dark:text-rose-300">
-                  Reset all Pass / Fail tags for current deck?
+              <div className="rounded-2xl border border-seal/30 bg-seal-soft/30 p-3.5 text-xs dark:bg-rose-950/30">
+                <p className="font-semibold text-seal dark:text-rose-300">
+                  Reset all Pass / Fail status tags for this deck?
                 </p>
-                <div className="mt-2.5 flex items-center gap-2">
+                <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       onClearStatuses();
                       setShowConfirmClear(false);
                     }}
-                    className="rounded-lg bg-seal px-3 py-1 text-xs font-semibold text-white shadow hover:bg-seal/90 cursor-pointer"
+                    className="h-9 rounded-xl bg-seal px-3 text-xs font-bold text-white shadow-xs hover:bg-seal/90 cursor-pointer"
                   >
-                    Yes, Reset
+                    Yes, Reset Tags
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowConfirmClear(false)}
-                    className="rounded-lg border border-rule bg-surface px-3 py-1 text-xs font-medium text-ink-soft hover:bg-surface-dim cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                    className="h-9 rounded-xl border border-rule bg-surface px-3 text-xs font-semibold text-ink-soft hover:bg-surface-dim cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
                   >
                     Cancel
                   </button>
@@ -323,7 +351,7 @@ function VocabSettingsModal({
               <button
                 type="button"
                 onClick={() => setShowConfirmClear(true)}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-rule bg-surface px-3 py-2 text-xs font-medium text-seal hover:bg-seal-soft/50 cursor-pointer transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-700 dark:bg-slate-800 dark:text-rose-400"
+                className="w-full h-10 inline-flex items-center justify-center gap-2 rounded-xl border border-rule bg-surface px-3 text-xs font-semibold text-seal hover:bg-seal-soft/50 cursor-pointer transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-rose-400"
               >
                 <RotateCcw size={14} />
                 Clear Pass / Fail Tags
@@ -336,7 +364,7 @@ function VocabSettingsModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl bg-jade px-4 py-2 text-xs font-semibold text-white cursor-pointer hover:bg-jade/90"
+            className="w-full h-11 rounded-2xl bg-jade px-4 text-xs font-bold text-white cursor-pointer hover:bg-jade/90 shadow-xs"
           >
             Done
           </button>
@@ -347,8 +375,8 @@ function VocabSettingsModal({
 }
 
 /**
- * Slide-out drawer listing saved vocab with deck management, multi-deck switching,
- * selection tools, copying/moving between decks, and Flashcard launch.
+ * Slide-out drawer listing saved vocab with symmetrical multi-deck controls,
+ * mobile-friendly selection tools, copying/moving between decks, and Flashcards.
  */
 export default function VocabDrawer({
   isOpen,
@@ -523,55 +551,169 @@ export default function VocabDrawer({
       />
       <aside
         ref={drawerRef}
-        className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[90vh] flex-col rounded-t-2xl border-t border-rule bg-surface shadow-2xl transition-transform sm:inset-y-0 sm:right-0 sm:left-auto sm:h-full sm:max-h-none sm:w-[28rem] lg:w-[32rem] sm:rounded-t-none sm:border-l sm:border-t-0 ${
+        className={`fixed inset-x-0 bottom-0 z-50 flex max-h-[90vh] flex-col rounded-t-3xl border-t border-rule bg-surface shadow-2xl transition-transform sm:inset-y-0 sm:right-0 sm:left-auto sm:h-full sm:max-h-none sm:w-[28rem] lg:w-[32rem] sm:rounded-t-none sm:border-l sm:border-t-0 ${
           isOpen ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:translate-x-full'
         }`}
         aria-hidden={!isOpen}
         inert={!isOpen || undefined}
       >
         {/* Drawer Header */}
-        <div className="flex flex-col border-b border-rule px-5 py-3.5 gap-2.5">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-display text-lg font-bold text-ink dark:text-slate-100 sm:text-xl">
-              <Stamp size={20} className="text-seal" />
-              Vocab Decks
-            </h2>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setSettingsOpen(true)}
-                title="Vocab Deck Settings & Import"
-                aria-label="Vocab Deck Settings & Import"
-                className="rounded-full p-2 text-ink-soft transition-colors hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              >
-                <Settings size={18} />
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close vocab drawer"
-                className="rounded-full p-2 text-ink-soft transition-colors hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              >
-                <X size={18} />
-              </button>
+        <div className="flex items-center justify-between border-b border-rule px-5 py-4 dark:border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-seal-soft text-seal dark:bg-rose-950 dark:text-rose-300">
+              <Stamp size={20} />
+            </div>
+            <div>
+              <h2 className="flex items-center gap-2 font-display text-lg font-bold text-ink dark:text-slate-100 sm:text-xl">
+                Vocab Decks
+                <span className="rounded-full bg-surface-dim px-2.5 py-0.5 text-xs font-bold text-ink-soft dark:bg-slate-800 dark:text-slate-300">
+                  {decks.length}
+                </span>
+              </h2>
+              <p className="text-xs font-medium text-ink-soft">Organize, transfer & share decks</p>
             </div>
           </div>
 
-          {/* Multi-Deck Switcher & Management */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              title="Vocab Settings & Import"
+              aria-label="Vocab Settings & Import"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-rule bg-surface text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            >
+              <Settings size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close vocab drawer"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-rule bg-surface text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Elevated Deck Controller Section */}
+        <div className="border-b border-rule bg-paper p-4 dark:border-slate-800 dark:bg-slate-950/60">
+          <div className="rounded-2xl border border-rule/80 bg-surface p-3.5 shadow-xs dark:border-slate-800 dark:bg-slate-900 space-y-3">
+            {/* Row 1: Deck Selection Dropdown & New Deck Button */}
             {!isRenamingDeck ? (
-              <div className="flex-1 flex items-center gap-2 min-w-0">
-                <select
-                  value={activeDeck?.id || ''}
-                  onChange={(e) => onSetActiveDeckId(e.target.value)}
-                  className="flex-1 rounded-xl border border-rule bg-surface-dim px-3 py-1.5 text-sm font-bold text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 cursor-pointer truncate"
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1 min-w-0">
+                  <select
+                    value={activeDeck?.id || ''}
+                    onChange={(e) => onSetActiveDeckId(e.target.value)}
+                    className="w-full h-11 rounded-xl border border-rule bg-surface-dim px-3.5 pr-8 text-sm font-bold text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 cursor-pointer truncate appearance-none"
+                  >
+                    {decks.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} ({d.words?.length || 0} words){d.id === defaultDeckId ? ' ★ Default' : ''}
+                      </option>
+                    ))}
+                  </select>
+
+                  <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint">
+                    <Layers size={14} />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowNewDeckInput(true)}
+                  title="Create New Deck"
+                  aria-label="Create New Deck"
+                  className="h-11 inline-flex items-center justify-center gap-1.5 rounded-xl bg-jade/10 border border-jade/30 px-3.5 text-xs font-bold text-jade hover:bg-jade hover:text-white transition cursor-pointer dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-jade shrink-0"
                 >
-                  {decks.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name} ({d.words?.length || 0}){d.id === defaultDeckId ? ' ★ Default' : ''}
-                    </option>
-                  ))}
-                </select>
+                  <Plus size={16} />
+                  <span className="hidden sm:inline">New Deck</span>
+                  <span className="sm:hidden">New</span>
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleRenameSubmit} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={renameDeckInput}
+                  onChange={(e) => setRenameDeckInput(e.target.value)}
+                  placeholder="Deck name..."
+                  autoFocus
+                  className="flex-1 h-11 rounded-xl border border-jade bg-surface px-3.5 text-sm font-semibold text-ink focus:outline-none dark:border-jade dark:bg-slate-950 dark:text-slate-100"
+                />
+                <button
+                  type="submit"
+                  className="h-11 rounded-xl bg-jade px-4 text-xs font-bold text-white cursor-pointer hover:bg-jade/90"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsRenamingDeck(false)}
+                  className="h-11 rounded-xl border border-rule px-3 text-xs font-semibold text-ink-soft cursor-pointer hover:bg-surface-dim dark:border-slate-800"
+                >
+                  Cancel
+                </button>
+              </form>
+            )}
+
+            {/* Inline New Deck Creation Form */}
+            {showNewDeckInput && (
+              <form onSubmit={handleCreateDeckSubmit} className="flex items-center gap-2 pt-1 border-t border-rule/50 dark:border-slate-800">
+                <input
+                  type="text"
+                  value={newDeckNameInput}
+                  onChange={(e) => setNewDeckNameInput(e.target.value)}
+                  placeholder="Enter new deck name..."
+                  autoFocus
+                  className="flex-1 h-10 rounded-xl border border-rule bg-surface-dim px-3 text-xs font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                />
+                <button
+                  type="submit"
+                  className="h-10 rounded-xl bg-jade px-3.5 text-xs font-bold text-white cursor-pointer hover:bg-jade/90"
+                >
+                  Create
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNewDeckInput(false)}
+                  className="h-10 rounded-xl border border-rule px-3 text-xs font-medium text-ink-soft cursor-pointer hover:bg-surface-dim dark:border-slate-800"
+                >
+                  Cancel
+                </button>
+              </form>
+            )}
+
+            {/* Row 2: Symmetrical Deck Quick Toolbar */}
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-rule/50 dark:border-slate-800">
+              <div className="flex items-center">
+                {isDefaultDeck ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                    <Star size={13} fill="currentColor" />
+                    Default Deck
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onSetDefaultDeckId(activeDeck.id)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-rule bg-surface px-2.5 py-1 text-xs font-semibold text-ink-soft hover:bg-amber-500/10 hover:text-amber-700 transition cursor-pointer dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+                  >
+                    <Star size={13} />
+                    Set as Default
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  title="Copy Deck Share Link"
+                  className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1 text-xs font-semibold text-jade hover:bg-jade-soft transition cursor-pointer dark:border-slate-800 dark:bg-slate-950 dark:text-emerald-400"
+                >
+                  <Share2 size={13} />
+                  <span>{copiedToast ? 'Copied!' : 'Share'}</span>
+                </button>
 
                 <button
                   type="button"
@@ -580,197 +722,103 @@ export default function VocabDrawer({
                     setIsRenamingDeck(true);
                   }}
                   title="Rename Deck"
-                  aria-label="Rename Deck"
-                  className="rounded-lg p-1.5 text-ink-soft hover:bg-surface-dim hover:text-ink cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                  className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1 text-xs font-semibold text-ink-soft hover:bg-surface-dim transition cursor-pointer dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
                 >
-                  <Edit2 size={15} />
+                  <Edit2 size={13} />
+                  <span>Rename</span>
                 </button>
+
+                {decks.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => onDeleteDeck(activeDeck.id)}
+                    title="Delete Deck"
+                    className="inline-flex items-center justify-center rounded-xl border border-rule bg-surface h-7 w-7 text-ink-faint hover:bg-seal-soft hover:text-seal transition cursor-pointer dark:border-slate-800 dark:bg-slate-950 dark:hover:text-rose-400"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
               </div>
-            ) : (
-              <form onSubmit={handleRenameSubmit} className="flex-1 flex items-center gap-1.5">
-                <input
-                  type="text"
-                  value={renameDeckInput}
-                  onChange={(e) => setRenameDeckInput(e.target.value)}
-                  autoFocus
-                  className="flex-1 rounded-lg border border-jade bg-surface px-2.5 py-1 text-xs font-semibold text-ink focus:outline-none dark:border-jade dark:bg-slate-800 dark:text-slate-100"
-                />
-                <button
-                  type="submit"
-                  className="rounded-lg bg-jade px-2.5 py-1 text-xs font-bold text-white cursor-pointer"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsRenamingDeck(false)}
-                  className="rounded-lg border border-rule px-2.5 py-1 text-xs font-medium text-ink-soft cursor-pointer dark:border-slate-700"
-                >
-                  Cancel
-                </button>
-              </form>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setShowNewDeckInput(true)}
-              title="Create New Deck"
-              aria-label="Create New Deck"
-              className="inline-flex items-center gap-1 rounded-xl border border-jade/30 bg-jade-soft/50 px-2.5 py-1.5 text-xs font-bold text-jade hover:bg-jade hover:text-white transition cursor-pointer dark:bg-emerald-950/40 dark:text-emerald-300"
-            >
-              <Plus size={15} />
-              <span>New</span>
-            </button>
-          </div>
-
-          {/* New Deck Inline Input Form */}
-          {showNewDeckInput && (
-            <form onSubmit={handleCreateDeckSubmit} className="flex items-center gap-1.5 pt-1">
-              <input
-                type="text"
-                value={newDeckNameInput}
-                onChange={(e) => setNewDeckNameInput(e.target.value)}
-                placeholder="Deck name..."
-                autoFocus
-                className="flex-1 rounded-xl border border-rule bg-surface px-3 py-1.5 text-xs font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
-              />
-              <button
-                type="submit"
-                className="rounded-xl bg-jade px-3 py-1.5 text-xs font-bold text-white cursor-pointer"
-              >
-                Create
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowNewDeckInput(false)}
-                className="rounded-xl border border-rule px-3 py-1.5 text-xs text-ink-soft cursor-pointer dark:border-slate-700"
-              >
-                Cancel
-              </button>
-            </form>
-          )}
-
-          {/* Deck Metadata & Share Link Quick Bar */}
-          <div className="flex items-center justify-between text-xs pt-1 border-t border-rule/50 dark:border-slate-800/60">
-            <div className="flex items-center gap-2">
-              {isDefaultDeck ? (
-                <span className="inline-flex items-center gap-1 font-bold text-amber-600 dark:text-amber-400">
-                  <Star size={13} fill="currentColor" />
-                  Default Deck
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => onSetDefaultDeckId(activeDeck.id)}
-                  className="inline-flex items-center gap-1 text-ink-soft hover:text-amber-600 font-semibold cursor-pointer dark:text-slate-400 dark:hover:text-amber-400"
-                >
-                  <Star size={13} />
-                  Set as Default Deck
-                </button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                title="Copy Deck Share Link"
-                className="inline-flex items-center gap-1 font-semibold text-jade hover:underline cursor-pointer"
-              >
-                <Share2 size={13} />
-                {copiedToast ? 'Link Copied!' : 'Copy Share Link'}
-              </button>
-
-              {decks.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => onDeleteDeck(activeDeck.id)}
-                  title="Delete Deck"
-                  className="inline-flex items-center gap-1 text-ink-faint hover:text-seal font-semibold cursor-pointer dark:hover:text-rose-400"
-                >
-                  <Trash2 size={13} />
-                </button>
-              )}
             </div>
           </div>
         </div>
 
         {/* Action Feedback Banner */}
         {actionFeedback && (
-          <div className="bg-jade-soft px-5 py-1.5 text-center text-xs font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300 transition-all">
+          <div className="bg-jade px-5 py-2 text-center text-xs font-bold text-white shadow-xs transition-all">
             {actionFeedback}
           </div>
         )}
 
-        {/* Selection Quick Bar & Transfer Tools */}
+        {/* Selection Bar & Symmetrical Bulk Action Toolbar */}
         {vocab.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between border-b border-rule bg-paper px-5 py-2.5 text-xs sm:text-sm dark:bg-slate-950 gap-2">
-            <div className="flex items-center gap-2.5 text-ink-soft dark:text-slate-400">
-              <button
-                type="button"
-                onClick={handleSelectAll}
-                className="hover:text-jade font-bold cursor-pointer"
-              >
-                Select All
-              </button>
-              <span>•</span>
-              <button
-                type="button"
-                onClick={handleSelectFailed}
-                disabled={failedCount === 0}
-                className={`font-bold cursor-pointer ${
-                  failedCount > 0 ? 'hover:text-seal text-seal' : 'opacity-40 cursor-not-allowed'
-                }`}
-              >
-                Select Failed ({failedCount})
-              </button>
-              <span>•</span>
-              <button
-                type="button"
-                onClick={handleClearSelection}
-                className="hover:text-ink font-semibold cursor-pointer"
-              >
-                Clear
-              </button>
-            </div>
+          <div className="border-b border-rule bg-surface px-5 py-3 dark:border-slate-800 space-y-2.5">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <div className="flex items-center gap-2.5 text-ink-soft dark:text-slate-400">
+                <button
+                  type="button"
+                  onClick={handleSelectAll}
+                  className="hover:text-jade font-bold cursor-pointer"
+                >
+                  Select All
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={handleSelectFailed}
+                  disabled={failedCount === 0}
+                  className={`font-bold cursor-pointer ${
+                    failedCount > 0 ? 'hover:text-seal text-seal' : 'opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  Failed ({failedCount})
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={handleClearSelection}
+                  className="hover:text-ink font-semibold cursor-pointer"
+                >
+                  Clear
+                </button>
+              </div>
 
-            <div className="flex items-center gap-2">
-              {selectedWords.size > 0 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setTransferModal({ isOpen: true, mode: 'copy' })}
-                    title="Copy selected words to another deck"
-                    className="inline-flex items-center gap-1 rounded-lg border border-rule bg-surface px-2 py-1 text-xs font-semibold text-ink-soft hover:bg-jade-soft hover:text-jade cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                  >
-                    <Copy size={13} />
-                    Copy
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setTransferModal({ isOpen: true, mode: 'move' })}
-                    title="Move selected words to another deck"
-                    className="inline-flex items-center gap-1 rounded-lg border border-rule bg-surface px-2 py-1 text-xs font-semibold text-ink-soft hover:bg-jade-soft hover:text-jade cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                  >
-                    <MoveRight size={13} />
-                    Move
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleBulkDelete}
-                    title="Remove selected words from deck"
-                    className="inline-flex items-center gap-1 rounded-lg border border-rule bg-surface px-2 py-1 text-xs font-semibold text-seal hover:bg-seal-soft cursor-pointer dark:border-slate-700 dark:bg-slate-800 dark:text-rose-400"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </>
-              )}
-              <span className="text-ink-faint font-semibold ml-1">
+              <span className="text-xs font-bold text-ink-faint">
                 {selectedWords.size} selected
               </span>
             </div>
+
+            {/* Symmetrical Action Grid */}
+            {selectedWords.size > 0 && (
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setTransferModal({ isOpen: true, mode: 'copy' })}
+                  className="h-9 inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface-dim text-xs font-bold text-ink transition hover:bg-jade-soft hover:text-jade cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  <Copy size={14} />
+                  <span>Copy</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTransferModal({ isOpen: true, mode: 'move' })}
+                  className="h-9 inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface-dim text-xs font-bold text-ink transition hover:bg-jade-soft hover:text-jade cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  <MoveRight size={14} />
+                  <span>Move</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleBulkDelete}
+                  className="h-9 inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface-dim text-xs font-bold text-seal transition hover:bg-seal-soft cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-rose-400"
+                >
+                  <Trash2 size={14} />
+                  <span>Delete</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -778,8 +826,8 @@ export default function VocabDrawer({
         <div className="flex-1 overflow-y-auto">
           {vocab.length === 0 ? (
             <div className="p-8 text-center text-ink-faint space-y-2">
-              <p className="text-lg font-medium">No words in this deck.</p>
-              <p className="text-sm">
+              <p className="text-base font-bold text-ink dark:text-slate-200">No words in this deck.</p>
+              <p className="text-xs leading-relaxed max-w-xs mx-auto">
                 Tap any word in the reader and stamp it to save it here, or copy/move words from another deck.
               </p>
             </div>
@@ -792,7 +840,7 @@ export default function VocabDrawer({
                     <button
                       type="button"
                       onClick={() => handleToggleSelectWord(entry.word)}
-                      aria-label={`${isChecked ? 'Deselect' : 'Select'} ${entry.word} for flashcards`}
+                      aria-label={`${isChecked ? 'Deselect' : 'Select'} ${entry.word}`}
                       className={`mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                         isChecked
                           ? 'border-jade bg-jade text-white shadow-xs'

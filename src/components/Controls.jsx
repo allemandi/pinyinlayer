@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, BookMarked, Settings, X, FolderInput } from 'lucide-react';
+import { Eye, EyeOff, BookMarked, Settings, X, FolderInput, ShieldCheck } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 import { decodeDeckPayload } from '../utils/deckShare.js';
@@ -7,8 +7,8 @@ import { decodeDeckPayload } from '../utils/deckShare.js';
 const LEVELS = [1, 2, 3, 4, 5, 6];
 
 /**
- * Reading controls: pinyin on/off, character format (simplified, traditional, original),
- * HSK filter, deck import in settings, and the saved-vocab drawer button.
+ * Reading controls: pinyin on/off, character format, HSK filter,
+ * security-sanitized deck import, and saved-vocab drawer launch.
  */
 export default function Controls({
   pinyinVisible,
@@ -26,7 +26,7 @@ export default function Controls({
   const [showSettings, setShowSettings] = useState(false);
   const [importInput, setImportInput] = useState('');
   const [importFeedback, setImportFeedback] = useState('');
-  const [importStatus, setImportStatus] = useState('idle'); // 'idle' | 'success' | 'error'
+  const [importStatus, setImportStatus] = useState('idle');
 
   useEscapeKey(() => setShowSettings(false), showSettings);
   const settingsContainerRef = useFocusTrap(showSettings);
@@ -45,7 +45,7 @@ export default function Controls({
     const imported = decodeDeckPayload(importInput);
     if (!imported) {
       setImportStatus('error');
-      setImportFeedback('Invalid or corrupted deck link. Please check the URL.');
+      setImportFeedback('Invalid, corrupted, or oversized deck link. Please check the URL.');
       return;
     }
 
@@ -302,15 +302,21 @@ export default function Controls({
                 </>
               )}
 
-              {/* Import Deck Link Section */}
+              {/* Security-Sanitized Import Deck Link Section */}
               <div className="border-t border-rule/50 my-1" />
               <div className="flex flex-col gap-2.5">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-ink-soft block">
-                    Import Shared Deck
-                  </span>
-                  <span className="text-[11px] text-ink-faint">
-                    Paste a deck link or code from another instance
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-ink-soft block">
+                      Import Shared Deck
+                    </span>
+                    <span className="text-[11px] text-ink-faint">
+                      Paste a deck link or payload code from another instance
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-jade dark:text-emerald-400 shrink-0">
+                    <ShieldCheck size={13} />
+                    Sanitized
                   </span>
                 </div>
 
@@ -319,21 +325,21 @@ export default function Controls({
                     type="text"
                     value={importInput}
                     onChange={(e) => setImportInput(e.target.value)}
-                    placeholder="Paste deck link or code..."
-                    className="w-full rounded-xl border border-rule bg-surface-dim px-3 py-2 text-xs font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                    placeholder="Paste deck link or payload code..."
+                    className="w-full h-11 rounded-2xl border border-rule bg-surface-dim px-3.5 text-xs font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
                   />
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-jade px-3.5 py-2 text-xs font-bold text-white transition hover:bg-jade/90 cursor-pointer shadow-xs"
+                    className="h-11 inline-flex items-center justify-center gap-2 rounded-2xl bg-jade px-4 text-xs font-bold text-white shadow-xs transition hover:bg-jade/90 cursor-pointer"
                   >
-                    <FolderInput size={14} />
-                    Import Shared Deck
+                    <FolderInput size={15} />
+                    <span>Import Shared Deck</span>
                   </button>
                 </form>
 
                 {importFeedback && (
                   <p
-                    className={`text-[11px] font-medium ${
+                    className={`text-[11px] font-semibold ${
                       importStatus === 'error' ? 'text-seal dark:text-rose-400' : 'text-jade dark:text-emerald-400'
                     }`}
                   >

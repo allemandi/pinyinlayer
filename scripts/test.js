@@ -43,13 +43,13 @@ async function run() {
 
   // Character formatting & conversion tests
   const simplifiedInput = '这是一个繁体字测试的句子';
-  const traditionalInput = '這是一個繁體字測試的句子';
+  const traditionalInput = '資訊是一個繁體字測試的句子';
 
   const toTraditional = await convertTextAsync(simplifiedInput, 'traditional');
   assert.strictEqual(toTraditional, '這是一個繁體字測試的句子', 'convertTextAsync should convert Simplified to Traditional');
 
   const toSimplified = await convertTextAsync(traditionalInput, 'simplified');
-  assert.strictEqual(toSimplified, '这是一个繁体字测试的句子', 'convertTextAsync should convert Traditional to Simplified');
+  assert.strictEqual(toSimplified, '资讯是一个繁体字测试的句子', 'convertTextAsync should convert Traditional to Simplified');
 
   const originalText = await convertTextAsync(traditionalInput, 'original');
   assert.strictEqual(originalText, traditionalInput, 'convertTextAsync with original format should not alter text');
@@ -117,6 +117,24 @@ async function run() {
   const decodedFromUrl = decodeDeckPayload(shareUrl);
   assert.strictEqual(decodedFromUrl.name, 'HSK 4 Prep', 'decodeDeckPayload should parse full share URL');
   assert.strictEqual(decodedFromUrl.words.length, 2, 'decodeDeckPayload should recover words from full share URL');
+
+  // Security Sanitization Tests
+  const maliciousDeck = {
+    name: '<script>alert("XSS")</script> Malicious Deck',
+    words: [
+      {
+        word: '<img src=x onerror=alert(1)>测试',
+        pinyin: 'cè<script> shì',
+        definitions: ['<b onmouseover=alert(1)>def1</b>', 'normal def'],
+      },
+    ],
+  };
+
+  const encodedMalicious = encodeDeckPayload(maliciousDeck);
+  const decodedMalicious = decodeDeckPayload(encodedMalicious);
+  assert.ok(!decodedMalicious.name.includes('<script>'), 'decodeDeckPayload should strip HTML tags from deck name');
+  assert.ok(!decodedMalicious.words[0].word.includes('<img'), 'decodeDeckPayload should sanitize word fields');
+  assert.ok(!decodedMalicious.words[0].definitions[0].includes('<b'), 'decodeDeckPayload should sanitize definition HTML tags');
 
   // Multi-Deck Copying / Moving Operations Test
   let mockDecks = [
