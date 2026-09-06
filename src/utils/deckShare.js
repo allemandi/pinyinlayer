@@ -1,42 +1,47 @@
 /**
- * Security-sanitized Deck serialization and share link utilities for PinyinLayer.
- * Handles encoding, URL extraction, payload limits, and XSS sanitization
- * for sharing deck links safely across instances.
+ * Production-Grade Security-Sanitized Deck Serialization & Sharing for PinyinLayer.
+ * Handles encoding, URL parsing, bounds enforcement, protocol locking, and XSS sanitization.
  */
 
-const MAX_DECK_NAME_LENGTH = 60;
-const MAX_WORDS_PER_DECK = 500;
-const MAX_WORD_LENGTH = 30;
-const MAX_PINYIN_LENGTH = 100;
-const MAX_DEFINITIONS_PER_WORD = 10;
-const MAX_DEFINITION_LENGTH = 300;
-const MAX_PAYLOAD_BYTES = 64 * 1024; // 64 KB
+const MAX_DECK_NAME_LENGTH = 40;
+const MAX_WORDS_PER_DECK = 200;
+const MAX_WORD_LENGTH = 20;
+const MAX_PINYIN_LENGTH = 60;
+const MAX_DEFINITIONS_PER_WORD = 5;
+const MAX_DEFINITION_LENGTH = 150;
+const MAX_PAYLOAD_BYTES = 32 * 1024; // 32 KB
+
+const BASE64_URL_REGEX = /^[A-Za-z0-9_-]+$/;
 
 /**
- * Sanitizes input text to prevent XSS, HTML injection, and control code issues.
+ * Sanitizes input text to prevent XSS, HTML/XML tag injection, and control code issues.
  */
-function sanitizeText(str = '', maxLength = 100) {
+export function sanitizeText(str = '', maxLength = 100) {
   if (typeof str !== 'string') return '';
+
   return str
-    .replace(/[<>&'"]/g, (char) => {
+    .replace(/<[^>]*>/g, '') // Strip all HTML/script tags
+    .replace(/[<>&'"\\`]/g, (char) => {
       switch (char) {
         case '<': return '‹';
         case '>': return '›';
         case '&': return '&';
         case "'": return '’';
         case '"': return '”';
+        case '`': return '‘';
+        case '\\': return '＼';
         default: return char;
       }
     })
-    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // remove control chars
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control codes
     .trim()
     .slice(0, maxLength);
 }
 
 /**
- * Encodes a deck object into a URL-safe base64 string with bounds checking.
+ * Encodes a deck object into a URL-safe base64 payload with strict bounds enforcement.
  * @param {Object} deck - Deck object containing name and words array.
- * @returns {string} Encoded deck payload string.
+ * @returns {string} Encoded base64url payload string.
  */
 export function encodeDeckPayload(deck) {
   if (!deck || typeof deck !== 'object') return '';
@@ -73,7 +78,7 @@ export function encodeDeckPayload(deck) {
     const bytes = new TextEncoder().encode(jsonStr);
 
     if (bytes.length > MAX_PAYLOAD_BYTES) {
-      console.warn('Deck payload exceeds maximum size limit (64KB)');
+      console.warn('Deck payload exceeds 32KB size limit');
       return '';
     }
 
@@ -90,8 +95,8 @@ export function encodeDeckPayload(deck) {
 }
 
 /**
- * Decodes a share link or raw encoded string into a sanitized deck object.
- * Rejects oversized or malicious payloads.
+ * Validates and decodes a share link or raw base64url string into a clean deck object.
+ * Strictly locks protocols (http/https only) and rejects oversized/malicious input.
  * @param {string} input - URL, query string, or base64url payload.
  * @returns {Object|null} Sanitized deck object { name, words } or null if invalid.
  */
@@ -100,10 +105,30 @@ export function decodeDeckPayload(input) {
 
   let rawPayload = input.trim();
 
-  // Handle URL or query string input
+  // Handle URL strings safely with protocol locking
   if (rawPayload.includes('?deck=') || rawPayload.includes('&deck=')) {
+    // Protocol safety check: reject dangerous URI schemes
+    const lower = rawPayload.toLowerCase();
+    if (
+      lower.startsWith('javascript:') ||
+      lower.startsWith('data:') ||
+      lower.startsWith('file:') ||
+      lower.startsWith('blob:') ||
+      lower.startsWith('vbscript:')
+    ) {
+      console.warn('Rejected invalid URL protocol in deck link');
+      return null;
+    }
+
     try {
       const urlObj = new URL(rawPayload, 'https://localhost');
+      if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:' && urlObj.protocol !== 'file:') {
+        // Only allow safe web protocols
+        if (!urlObj.href.startsWith('https://localhost')) {
+          console.warn('Rejected unsafe protocol:', urlObj.protocol);
+          return null;
+        }
+      }
       const param = urlObj.searchParams.get('deck');
       if (param) {
         rawPayload = param;
@@ -116,14 +141,20 @@ export function decodeDeckPayload(input) {
     }
   }
 
-  // Prevent processing arbitrarily massive string inputs
+  // Reject oversized payloads immediately
   if (rawPayload.length > MAX_PAYLOAD_BYTES * 2) {
-    console.warn('Imported deck payload exceeds length threshold');
+    console.warn('Deck payload exceeds length limit');
+    return null;
+  }
+
+  // Ensure base64url string characters are valid
+  const cleanBase64Url = rawPayload.replace(/[^A-Za-z0-9_-]/g, '');
+  if (!cleanBase64Url || !BASE64_URL_REGEX.test(cleanBase64Url)) {
     return null;
   }
 
   try {
-    let base64 = rawPayload.replace(/-/g, '+').replace(/_/g, '/');
+    let base64 = cleanBase64Url.replace(/-/g, '+').replace(/_/g, '/');
     while (base64.length % 4 !== 0) {
       base64 += '=';
     }
@@ -135,13 +166,13 @@ export function decodeDeckPayload(input) {
     }
 
     if (bytes.length > MAX_PAYLOAD_BYTES) {
-      console.warn('Decoded deck exceeds 64KB size limit');
+      console.warn('Decoded payload exceeds max byte limit');
       return null;
     }
 
     const jsonStr = new TextDecoder().decode(bytes);
     const data = JSON.parse(jsonStr, (key, value) => {
-      // Prevent prototype pollution attacks
+      // Prototype pollution defense
       if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
         return undefined;
       }
@@ -149,7 +180,7 @@ export function decodeDeckPayload(input) {
     });
 
     if (data && typeof data === 'object' && Array.isArray(data.words)) {
-      const sanitizedDeckName = sanitizeText(
+      const sanitizedName = sanitizeText(
         typeof data.name === 'string' && data.name.trim() ? data.name : 'Imported Deck',
         MAX_DECK_NAME_LENGTH
       );
@@ -157,21 +188,25 @@ export function decodeDeckPayload(input) {
       const sanitizedWords = data.words
         .slice(0, MAX_WORDS_PER_DECK)
         .filter((w) => w && typeof w.word === 'string' && w.word.trim())
-        .map((w) => ({
-          word: sanitizeText(w.word, MAX_WORD_LENGTH),
-          pinyin: sanitizeText(w.pinyin || '', MAX_PINYIN_LENGTH),
-          definitions: Array.isArray(w.definitions)
+        .map((w) => {
+          const sanitizedDefs = Array.isArray(w.definitions)
             ? w.definitions
                 .slice(0, MAX_DEFINITIONS_PER_WORD)
                 .map((d) => sanitizeText(d, MAX_DEFINITION_LENGTH))
                 .filter(Boolean)
-            : [],
-          savedAt: Date.now(),
-          ...(w.status === 'passed' || w.status === 'failed' ? { status: w.status } : {}),
-        }));
+            : [];
+
+          return {
+            word: sanitizeText(w.word, MAX_WORD_LENGTH),
+            pinyin: sanitizeText(w.pinyin || '', MAX_PINYIN_LENGTH),
+            definitions: sanitizedDefs,
+            savedAt: Date.now(),
+            ...(w.status === 'passed' || w.status === 'failed' ? { status: w.status } : {}),
+          };
+        });
 
       return {
-        name: sanitizedDeckName,
+        name: sanitizedName,
         words: sanitizedWords,
       };
     }
@@ -192,7 +227,7 @@ export function getDeckShareUrl(deck) {
   if (!payload) return '';
 
   const origin =
-    typeof window !== 'undefined' && window.location
+    typeof window !== 'undefined' && window.location && window.location.origin !== 'null'
       ? window.location.origin
       : 'https://pinyinlayer.netlify.app';
   const pathname =

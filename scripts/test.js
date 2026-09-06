@@ -118,7 +118,7 @@ async function run() {
   assert.strictEqual(decodedFromUrl.name, 'HSK 4 Prep', 'decodeDeckPayload should parse full share URL');
   assert.strictEqual(decodedFromUrl.words.length, 2, 'decodeDeckPayload should recover words from full share URL');
 
-  // Security Sanitization Tests
+  // Security Sanitization & Protocol Locking Tests
   const maliciousDeck = {
     name: '<script>alert("XSS")</script> Malicious Deck',
     words: [
@@ -135,6 +135,10 @@ async function run() {
   assert.ok(!decodedMalicious.name.includes('<script>'), 'decodeDeckPayload should strip HTML tags from deck name');
   assert.ok(!decodedMalicious.words[0].word.includes('<img'), 'decodeDeckPayload should sanitize word fields');
   assert.ok(!decodedMalicious.words[0].definitions[0].includes('<b'), 'decodeDeckPayload should sanitize definition HTML tags');
+
+  // Protocol locking test
+  const jsUri = 'javascript:alert(1)?deck=' + encodedPayload;
+  assert.strictEqual(decodeDeckPayload(jsUri), null, 'decodeDeckPayload should reject javascript: protocol links');
 
   // Multi-Deck Copying / Moving Operations Test
   let mockDecks = [
