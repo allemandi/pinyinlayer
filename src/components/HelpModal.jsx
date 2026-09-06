@@ -1,4 +1,4 @@
-import { X, Shield, Globe, HelpCircle, Layers, Share2 } from 'lucide-react';
+import { X, Shield, Globe, HelpCircle, Layers } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 
@@ -61,18 +61,21 @@ export default function HelpModal({ isOpen, onClose }) {
           <div className="rounded-2xl border border-rule/50 bg-surface-dim/50 p-4 dark:border-slate-800/60 dark:bg-slate-900/50">
             <div className="flex gap-3">
               <Layers size={18} className="mt-0.5 shrink-0 text-jade" />
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <h3 className="font-bold text-ink dark:text-slate-100 text-xs sm:text-sm">
-                  Vocabulary Decks & Share Links
+                  Vocabulary Decks & Actions
                 </h3>
                 <p className="text-xs leading-normal">
-                  <strong className="text-ink dark:text-slate-200">Default Deck:</strong> Newly saved words land in your designated Default Deck. You can change which deck is Default at any time.
+                  <strong className="text-ink dark:text-slate-200">Default Deck:</strong> Saved words land in your Default Deck. You can change your Default Deck at any time.
                 </p>
                 <p className="text-xs leading-normal">
-                  <strong className="text-ink dark:text-slate-200">Managing Decks:</strong> Switch decks, select multiple words, and copy or move vocabulary between decks seamlessly.
+                  <strong className="text-ink dark:text-slate-200">Copy Text:</strong> Copies selected Chinese words, pinyin, and definitions as plain text to your device clipboard.
                 </p>
                 <p className="text-xs leading-normal">
-                  <strong className="text-ink dark:text-slate-200">Sharing Decks:</strong> Click <span className="font-semibold text-jade">Share Link</span> to copy a shareable URL (<code className="text-[11px] bg-surface px-1 py-0.5 rounded border border-rule/40 dark:border-slate-800">?deck=...</code>). When someone opens or pastes your link, PinyinLayer sanitizes the payload locally before importing it as a new deck.
+                  <strong className="text-ink dark:text-slate-200">Copy to Deck / Move to Deck:</strong> Transfers selected vocabulary between different decks.
+                </p>
+                <p className="text-xs leading-normal">
+                  <strong className="text-ink dark:text-slate-200">Sharing Decks:</strong> Click <span className="font-semibold text-jade">Share</span> to copy a shareable link (<code className="text-[11px] bg-surface px-1 py-0.5 rounded border border-rule/40 dark:border-slate-800">?deck=...</code>). Opening or pasting a link safely sanitizes the deck locally before importing.
                 </p>
               </div>
             </div>

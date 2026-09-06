@@ -16,6 +16,9 @@ import {
   Copy,
   MoveRight,
   FolderInput,
+  FolderPlus,
+  FolderOutput,
+  ClipboardCopy,
   ShieldCheck,
   Layers,
 } from 'lucide-react';
@@ -74,18 +77,18 @@ function DeckTargetModal({
         className="w-full max-w-sm rounded-3xl border border-rule bg-surface p-5 sm:p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900"
         role="dialog"
         aria-modal="true"
-        aria-label={`${mode === 'copy' ? 'Copy' : 'Move'} Words to Deck`}
+        aria-label={`${mode === 'copy' ? 'Copy' : 'Move'} Words to Another Deck`}
       >
         <div className="flex items-center justify-between border-b border-rule pb-3.5 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-jade-soft text-jade dark:bg-emerald-950 dark:text-emerald-300">
-              {mode === 'copy' ? <Copy size={18} /> : <MoveRight size={18} />}
+              {mode === 'copy' ? <FolderPlus size={20} /> : <FolderOutput size={20} />}
             </div>
             <div>
               <h3 className="font-display text-base font-bold text-ink dark:text-slate-100">
-                {mode === 'copy' ? 'Copy' : 'Move'} {selectedCount} {selectedCount === 1 ? 'Word' : 'Words'}
+                {mode === 'copy' ? 'Copy' : 'Move'} {selectedCount} {selectedCount === 1 ? 'Word' : 'Words'} to Deck
               </h3>
-              <p className="text-[11px] text-ink-faint">Select or create a target deck</p>
+              <p className="text-[11px] font-medium text-ink-faint">Transfer between vocabulary decks</p>
             </div>
           </div>
           <button
@@ -102,12 +105,12 @@ function DeckTargetModal({
           {!isCreatingNew ? (
             <div className="space-y-2">
               <label className="block text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400">
-                Destination Deck
+                Choose Destination Deck
               </label>
               <select
                 value={targetDeckId}
                 onChange={(e) => setTargetDeckId(e.target.value)}
-                className="w-full h-11 rounded-2xl border border-rule bg-surface-dim px-3.5 text-sm font-semibold text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 cursor-pointer"
+                className="w-full h-12 rounded-2xl border border-rule bg-surface-dim px-3.5 text-sm font-bold text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 cursor-pointer"
               >
                 {decks
                   .filter((d) => (mode === 'move' ? d.id !== currentDeckId : true))
@@ -138,7 +141,7 @@ function DeckTargetModal({
                 onChange={(e) => setNewDeckName(e.target.value)}
                 placeholder="e.g., HSK 4 Vocabulary"
                 autoFocus
-                className="w-full h-11 rounded-2xl border border-rule bg-surface-dim px-3.5 text-sm font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                className="w-full h-12 rounded-2xl border border-rule bg-surface-dim px-3.5 text-sm font-medium text-ink focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
               />
               {decks.length > 1 && (
                 <button
@@ -164,8 +167,8 @@ function DeckTargetModal({
               type="submit"
               className="h-11 inline-flex items-center justify-center gap-1.5 rounded-2xl bg-jade px-4 text-xs font-bold text-white shadow-sm hover:bg-jade/90 transition cursor-pointer"
             >
-              {mode === 'copy' ? <Copy size={15} /> : <MoveRight size={15} />}
-              <span>{mode === 'copy' ? 'Copy Words' : 'Move Words'}</span>
+              {mode === 'copy' ? <FolderPlus size={16} /> : <FolderOutput size={16} />}
+              <span>{mode === 'copy' ? 'Copy to Deck' : 'Move to Deck'}</span>
             </button>
           </div>
         </form>
@@ -375,8 +378,8 @@ function VocabSettingsModal({
 }
 
 /**
- * Slide-out drawer listing saved vocab with symmetrical multi-deck controls,
- * mobile-friendly selection tools, copying/moving between decks, and Flashcards.
+ * Slide-out drawer listing saved vocab with crystal-clear action controls:
+ * Copy Text (system clipboard), Copy to Deck, Move to Deck, and Delete.
  */
 export default function VocabDrawer({
   isOpen,
@@ -481,6 +484,28 @@ export default function VocabDrawer({
     }
   };
 
+  /**
+   * Copies selected words as plain text list to system clipboard for messaging / notes.
+   */
+  const handleCopyTextToClipboard = () => {
+    const selectedEntries = vocab.filter((v) => selectedWords.has(v.word));
+    if (selectedEntries.length === 0) return;
+
+    const formattedText = selectedEntries
+      .map((entry) => {
+        const pinyinPart = entry.pinyin ? ` (${entry.pinyin})` : '';
+        const defPart = entry.definitions?.length > 0 ? ` — ${entry.definitions[0]}` : '';
+        return `${entry.word}${pinyinPart}${defPart}`;
+      })
+      .join('\n');
+
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(formattedText);
+      setActionFeedback(`Copied ${selectedEntries.length} words to clipboard!`);
+      setTimeout(() => setActionFeedback(''), 3000);
+    }
+  };
+
   const handleConfirmTransfer = ({ isNew, targetDeckId, newName }) => {
     const wordList = Array.from(selectedWords);
     let destId = targetDeckId;
@@ -496,10 +521,10 @@ export default function VocabDrawer({
 
     if (transferModal.mode === 'copy') {
       const count = onCopyWords(activeDeck.id, destId, wordList);
-      setActionFeedback(`Copied ${count} words!`);
+      setActionFeedback(`Copied ${count} words to deck!`);
     } else {
       const count = onMoveWords(activeDeck.id, destId, wordList);
-      setActionFeedback(`Moved ${count} words!`);
+      setActionFeedback(`Moved ${count} words to deck!`);
       setSelectedWords(new Set());
     }
 
@@ -750,7 +775,7 @@ export default function VocabDrawer({
           </div>
         )}
 
-        {/* Selection Bar & Symmetrical Bulk Action Toolbar */}
+        {/* Selection Bar & Explicit Self-Describing Bulk Action Toolbar */}
         {vocab.length > 0 && (
           <div className="border-b border-rule bg-surface px-5 py-3 dark:border-slate-800 space-y-2.5 shrink-0">
             <div className="flex items-center justify-between text-xs sm:text-sm">
@@ -788,34 +813,47 @@ export default function VocabDrawer({
               </span>
             </div>
 
-            {/* Symmetrical Action Grid */}
+            {/* Crystal-Clear, Self-Describing Action Controls Grid */}
             {selectedWords.size > 0 && (
-              <div className="grid grid-cols-3 gap-2 pt-0.5">
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleCopyTextToClipboard}
+                  title="Copy selected Chinese words to device clipboard"
+                  className="h-10 inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface-dim text-xs font-bold text-ink transition hover:bg-jade-soft hover:text-jade cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  <ClipboardCopy size={15} />
+                  <span>Copy Text</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setTransferModal({ isOpen: true, mode: 'copy' })}
+                  title="Copy selected words into another vocabulary deck"
                   className="h-10 inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface-dim text-xs font-bold text-ink transition hover:bg-jade-soft hover:text-jade cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
                 >
-                  <Copy size={14} />
-                  <span>Copy</span>
+                  <FolderPlus size={15} />
+                  <span>Copy to Deck</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setTransferModal({ isOpen: true, mode: 'move' })}
+                  title="Move selected words into another vocabulary deck"
                   className="h-10 inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface-dim text-xs font-bold text-ink transition hover:bg-jade-soft hover:text-jade cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
                 >
-                  <MoveRight size={14} />
-                  <span>Move</span>
+                  <FolderOutput size={15} />
+                  <span>Move to Deck</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleBulkDelete}
+                  title="Remove selected words from this deck"
                   className="h-10 inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface-dim text-xs font-bold text-seal transition hover:bg-seal-soft cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-rose-400"
                 >
-                  <Trash2 size={14} />
-                  <span>Delete</span>
+                  <Trash2 size={15} />
+                  <span>Delete Words</span>
                 </button>
               </div>
             )}
