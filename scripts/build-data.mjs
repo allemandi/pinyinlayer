@@ -8,6 +8,9 @@
 // "how is this pronounced, what does it mean" scanning without shipping
 // the full 120k-entry CC-CEDICT payload. Any HSK headwords missing in
 // CC-CEDICT fall back to definitions and pinyin from the HSK dataset.
+// Single characters appearing in HSK compounds derive their HSK level from
+// the minimum level among compounds they belong to (e.g. 工 inherits HSK 1
+// from 工作 / 工人).
 //
 // Run with: npm run build:data
 import { writeFileSync, readFileSync } from 'node:fs';
@@ -37,11 +40,17 @@ for (const entry of hsk) {
   if (levelOf[word] === undefined || best < levelOf[word]) levelOf[word] = best;
 }
 
+// Derive HSK levels for single characters from any compound words they appear in
+for (const [word, level] of Object.entries(levelOf)) {
+  for (const char of word) {
+    if (levelOf[char] === undefined || level < levelOf[char]) {
+      levelOf[char] = level;
+    }
+  }
+}
+
 // Keep HSK headwords plus any single character that appears in the HSK lists.
 const keepWords = new Set(Object.keys(levelOf));
-for (const word of Object.keys(levelOf)) {
-  for (const char of word) keepWords.add(char);
-}
 
 const dict = {};
 for (const e of cedict) {
