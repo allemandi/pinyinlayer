@@ -1,16 +1,22 @@
 // One-time / re-runnable data-build script (not shipped to the browser).
 // Merges CC-CEDICT (definitions) with the Complete HSK Vocabulary dataset
-// (HSK levels) into two lean static JSON files consumed by the app:
+// (HSK levels 1-7) into two lean static JSON files consumed by the app:
 //   src/data/dict.json      -> { "word": [{ t?, p, d:[...] }] }
-//   src/data/hskWords.json  -> { "word": 1..6 }
+//   src/data/hskWords.js    -> export default { "word": 1..7 }
 //
-// The dictionary is trimmed to HSK vocabulary only — enough for quick
+// The dictionary is trimmed to HSK vocabulary — enough for quick
 // "how is this pronounced, what does it mean" scanning without shipping
-// the full 120k-entry CC-CEDICT payload.
+// the full 120k-entry CC-CEDICT payload. Any HSK headwords missing in
+// CC-CEDICT fall back to definitions and pinyin from the HSK dataset.
+// Single characters appearing in HSK compounds derive their HSK level from
+// the minimum level among compounds they belong to (e.g. 工 inherits HSK 1
+// from 工作 / 工人).
 //
 // Run with: npm run build:data
-import { writeFileSync } from 'node:fs';
-import cedict from '../node_modules/cedict-json/cedict.json' with { type: 'json' };
+import { writeFileSync, readFileSync } from 'node:fs';
+import { pinyin } from 'pinyin-pro';
+
+const cedict = JSON.parse(readFileSync(new URL('../node_modules/cedict-json/cedict.json', import.meta.url)));
 
 const HSK_URL =
   'https://raw.githubusercontent.com/drkameleon/complete-hsk-vocabulary/main/complete.min.json';
@@ -18,32 +24,61 @@ const HSK_URL =
 console.log('Fetching HSK level data...');
 const hsk = await fetch(HSK_URL).then((res) => res.json());
 
+const hskMap = new Map();
+for (const entry of hsk) {
+  if (entry.s) hskMap.set(entry.s, entry);
+}
+
 const levelOf = {};
 for (const entry of hsk) {
   const nums = (entry.l || [])
     .map((code) => parseInt(code.slice(1), 10))
-    .filter((n) => n >= 1 && n <= 6);
+    .filter((n) => n >= 1 && n <= 7);
   if (!nums.length) continue;
   const best = Math.min(...nums);
   const word = entry.s;
   if (levelOf[word] === undefined || best < levelOf[word]) levelOf[word] = best;
 }
 
+// Derive HSK levels for single characters from any compound words they appear in
+for (const [word, level] of Object.entries(levelOf)) {
+  for (const char of word) {
+    if (levelOf[char] === undefined || level < levelOf[char]) {
+      levelOf[char] = level;
+    }
+  }
+}
+
 // Keep HSK headwords plus any single character that appears in the HSK lists.
 const keepWords = new Set(Object.keys(levelOf));
-for (const word of Object.keys(levelOf)) {
-  for (const char of word) keepWords.add(char);
-}
 
 const dict = {};
 for (const e of cedict) {
   const word = e.simplified;
   if (!word || !keepWords.has(word)) continue;
 
-  const english = Array.isArray(e.english) ? e.english[0] : e.english.split(/;\s*/)[0];
+  const rawEnglish = Array.isArray(e.english) ? e.english[0] : e.english.split(/;\s*/)[0];
+  const english = rawEnglish ? rawEnglish.trim() : '';
   const sense = { p: e.pinyin, d: [english] };
   if (e.traditional && e.traditional !== word) sense.t = e.traditional;
   (dict[word] ||= []).push(sense);
+}
+
+// Fallback: Populate definitions/pinyin/traditional for any HSK headwords missing from CC-CEDICT
+let addedFromHskCount = 0;
+for (const word of Object.keys(levelOf)) {
+  if (!dict[word]) {
+    const entry = hskMap.get(word);
+    if (entry && entry.f && entry.f.length > 0) {
+      const form = entry.f[0];
+      const pinyinFormatted = pinyin(word, { toneType: 'num' });
+      const meaning = form.m ? form.m.join('; ').trim() : '';
+      const sense = { p: pinyinFormatted, d: [meaning] };
+      if (form.t && form.t !== word) sense.t = form.t;
+      dict[word] = [sense];
+      addedFromHskCount++;
+    }
+  }
 }
 
 for (const word of Object.keys(dict)) {
@@ -60,3 +95,4 @@ export default ${JSON.stringify(levelOf, null, 2)};
 
 console.log('dict entries:', Object.keys(dict).length);
 console.log('hsk-leveled words:', Object.keys(levelOf).length);
+console.log('added from HSK fallback:', addedFromHskCount);
