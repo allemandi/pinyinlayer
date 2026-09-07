@@ -5,7 +5,7 @@ import { translateSentence } from '../utils/translateSentence.js';
 import { convertWordAsync } from '../utils/chineseConversion.js';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
-import hskWords from '../data/hskWords.js';
+import { getHskLevel } from '../utils/hsk.js';
 
 const WIDTH = 380; // Desktop width for popover
 const MARGIN = 16;
@@ -174,7 +174,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
               {target.text.length > 1 ? 'phrase' : 'character'}
               {(() => {
                 const checkedText = simpWord || target.text;
-                const hskLevel = hskWords[checkedText];
+                const hskLevel = getHskLevel(checkedText);
                 return hskLevel !== undefined ? ` • HSK ${hskLevel}` : '';
               })()}
             </p>
