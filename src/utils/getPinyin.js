@@ -6,14 +6,25 @@ const CHINESE_CHAR = /[\u4e00-\u9fff\u3400-\u4dbf]/;
 let enginePromise;
 export function loadEngine() {
   if (!enginePromise) {
-    enginePromise = Promise.all([import('pinyin-pro'), import('segmentit')]).then(
-      ([{ pinyin }, { useDefault, Segment }]) => ({
-        pinyin,
-        segmenter: useDefault(new Segment()),
+    enginePromise = Promise.all([import('pinyin-pro'), import('segmentit')])
+      .then(([{ pinyin }, segmentitMod]) => {
+        const Segment = segmentitMod.Segment || segmentitMod.default?.Segment;
+        const useDefault = segmentitMod.useDefault || segmentitMod.default?.useDefault;
+        return {
+          pinyin,
+          segmenter: useDefault(new Segment()),
+        };
       })
-    );
+      .catch((err) => {
+        enginePromise = null;
+        throw err;
+      });
   }
   return enginePromise;
+}
+
+if (typeof window !== 'undefined') {
+  loadEngine().catch(() => {});
 }
 
 /**

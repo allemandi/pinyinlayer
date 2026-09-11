@@ -14,8 +14,14 @@ import { useLocalStorage } from './hooks/useLocalStorage.js';
 import { decodeDeckPayload } from './utils/deckShare.js';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
 import { useFocusTrap } from './hooks/useFocusTrap.js';
+import { loadEngine } from './utils/getPinyin.js';
+import { loadConversionMaps } from './utils/chineseConversion.js';
 
 export default function App() {
+  useEffect(() => {
+    loadEngine().catch(() => {});
+    loadConversionMaps().catch(() => {});
+  }, []);
   const [rawText, setRawText] = useState('');
   const [cleanedText, setCleanedText] = useState('');
   const [pinyinVisible, setPinyinVisible] = useLocalStorage('pinyinlayer:pinyin', true);

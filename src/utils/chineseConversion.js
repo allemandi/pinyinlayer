@@ -30,20 +30,34 @@ export function loadConversionMaps() {
     if (typeof window === 'undefined') {
       // Node.js environment (e.g. running tests)
       const fsImport = 'node:fs';
-      mapsPromise = import(/* @vite-ignore */ fsImport).then((fs) => {
-        const path = new URL('../data/dict.json', import.meta.url);
-        const dict = JSON.parse(fs.readFileSync(path, 'utf8'));
-        return buildMapsFromDict(dict);
-      });
+      mapsPromise = import(/* @vite-ignore */ fsImport)
+        .then((fs) => {
+          const path = new URL('../data/dict.json', import.meta.url);
+          const dict = JSON.parse(fs.readFileSync(path, 'utf8'));
+          return buildMapsFromDict(dict);
+        })
+        .catch((err) => {
+          mapsPromise = null;
+          throw err;
+        });
     } else {
       // Browser environment (Vite)
-      mapsPromise = import('../data/dict.json').then((mod) => {
-        const dict = mod.default ?? mod;
-        return buildMapsFromDict(dict);
-      });
+      mapsPromise = import('../data/dict.json')
+        .then((mod) => {
+          const dict = mod.default ?? mod;
+          return buildMapsFromDict(dict);
+        })
+        .catch((err) => {
+          mapsPromise = null;
+          throw err;
+        });
     }
   }
   return mapsPromise;
+}
+
+if (typeof window !== 'undefined') {
+  loadConversionMaps().catch(() => {});
 }
 
 /**

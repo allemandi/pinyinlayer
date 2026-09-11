@@ -185,15 +185,19 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
   const [paragraphs, setParagraphs] = useState([]);
   const [peekedKeys, setPeekedKeys] = useState(() => new Set());
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     if (!cleanedText.trim()) {
       setParagraphs([]);
       setLoading(false);
+      setError(null);
       return;
     }
     setLoading(true);
+    setError(null);
     buildParagraphs(cleanedText, charFormat)
       .then((result) => {
         if (!cancelled) {
@@ -204,13 +208,14 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
       .catch((err) => {
         console.error('Failed to segment text:', err);
         if (!cancelled) {
+          setError(err?.message || 'Failed to segment text and load annotations.');
           setLoading(false);
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [cleanedText, charFormat]);
+  }, [cleanedText, charFormat, reloadToken]);
 
   const handlePeekStart = useCallback((key) => {
     setPeekedKeys((prev) => {
@@ -238,6 +243,26 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
           <span className="font-semibold text-ink-soft">Send to reader</span> to see it
           here — cleaned, paragraphed, and ready to tap through.
         </p>
+      </div>
+    );
+  }
+
+  if (error && !loading) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-4 rounded-2xl border border-rule bg-surface p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-base font-bold text-seal dark:text-rose-400">Failed to load text annotations</p>
+          <p className="text-xs text-ink-soft dark:text-slate-400">
+            {error}
+          </p>
+          <button
+            type="button"
+            onClick={() => setReloadToken((t) => t + 1)}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-jade px-4 py-2 text-xs font-bold text-white transition hover:bg-jade/90 cursor-pointer"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
