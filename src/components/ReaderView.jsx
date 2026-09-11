@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { tokenizeParagraph } from '../utils/getPinyin.js';
+import { loadEngine, tokenizeParagraphSync } from '../utils/getPinyin.js';
 import { shouldShowPinyin } from '../utils/pinyinVisibility.js';
 import { loadConversionMaps, convertTextSync, convertWordSync } from '../utils/chineseConversion.js';
 
@@ -43,15 +43,15 @@ function splitSentences(paragraph) {
 }
 
 async function buildParagraphs(cleanedText, charFormat) {
-  const maps = await loadConversionMaps();
+  const [maps, engine] = await Promise.all([loadConversionMaps(), loadEngine()]);
   // If formatting to simplified or traditional, we do tokenization on Simplified text for best segmentation accuracy.
   const segmentingFormat = charFormat === 'original' ? 'original' : 'simplified';
   const processedText = convertTextSync(cleanedText, segmentingFormat, maps);
 
   const blocks = processedText.split(/\n{2,}/).filter(Boolean);
-  const paragraphPromises = blocks.map(async (paragraph) => {
+  return blocks.map((paragraph) => {
     const sentences = splitSentences(paragraph);
-    const tokens = await tokenizeParagraph(paragraph);
+    const tokens = tokenizeParagraphSync(paragraph, engine);
     let offset = 0;
 
     return tokens.map((token) => {
@@ -95,8 +95,6 @@ async function buildParagraphs(cleanedText, charFormat) {
       };
     });
   });
-
-  return Promise.all(paragraphPromises);
 }
 
 function PinyinSlot({ visible, children, reserveSpace, sizeConfig }) {
@@ -152,6 +150,8 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
       onContextMenu={(e) => e.preventDefault()}
       onMouseEnter={() => onPeekStart(tokenKey)}
       onMouseLeave={() => onPeekEnd(tokenKey)}
+      onFocus={() => onPeekStart(tokenKey)}
+      onBlur={() => onPeekEnd(tokenKey)}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
@@ -172,9 +172,9 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
   );
 }
 
-function PunctuationToken({ text, reservePinyinRow, sizeConfig }) {
+function NonChineseToken({ text, reservePinyinRow, sizeConfig }) {
   return (
-    <span className="inline-flex flex-col items-center align-bottom">
+    <span className="inline-flex flex-col items-center align-bottom px-0.5">
       {reservePinyinRow && <PinyinSlot visible={false} reserveSpace sizeConfig={sizeConfig} />}
       <span className={`font-reading ${sizeConfig.char} leading-none text-ink-soft`}>{text}</span>
     </span>
@@ -269,7 +269,7 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
 
             if (!token.isChinese) {
               return (
-                <PunctuationToken
+                <NonChineseToken
                   key={tIndex}
                   text={token.text}
                   reservePinyinRow={reservePinyinRow}

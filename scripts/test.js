@@ -11,14 +11,18 @@ async function run() {
   const cleaned = cleanText('你好。\n\n世界。');
   assert.strictEqual(cleaned, '你好。\n\n世界。', 'cleanText should preserve Chinese punctuation and paragraph breaks');
 
-  // Punctuation conversion tests
-  const asciiPunctInput = '你好,世界!这是一个测试.真的吗?【是的】;“对”:(好的)...---~';
-  const cleanedPunct = cleanText(asciiPunctInput);
+  // Non-Chinese preservation & sanitization tests
+  const mixedInput = 'Hello 世界!\n\nThis is a test: 你好, world.';
+  const cleanedMixed = cleanText(mixedInput);
   assert.strictEqual(
-    cleanedPunct,
-    '你好，世界！这是一个测试。真的吗？【是的】；“对”：（好的）……——～',
-    'cleanText should convert ASCII punctuation to fullwidth Chinese equivalents'
+    cleanedMixed,
+    'Hello 世界!\n\nThis is a test: 你好, world.',
+    'cleanText should preserve English, numbers, and original punctuation'
   );
+
+  // Control code and zero-width space stripping test
+  const dirtyInput = '你好\u200B世界\u0000!';
+  assert.strictEqual(cleanText(dirtyInput), '你好世界!', 'cleanText should strip control codes and zero-width spaces');
 
   const sample = Object.entries(hskWords).find(([, level]) => Number.isInteger(level));
   assert.ok(sample, 'hskWords must contain at least one entry with a numeric level');
