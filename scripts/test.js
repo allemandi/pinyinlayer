@@ -70,11 +70,24 @@ async function run() {
   assert.ok(results && results.length > 0, 'lookupWord should successfully resolve definitions for Traditional inputs');
   assert.strictEqual(results[0].p, 'fan2 ti3 zi4', 'lookupWord should retrieve the correct pinyin for Traditional input');
 
-  // Synchronous conversion functions test
+  // Preloaded Engine & Conversion Maps Tests
   const { loadConversionMaps, convertTextSync, convertWordSync } = await import('../src/utils/chineseConversion.js');
+  const { loadEngine, tokenizeParagraph, tokenizeParagraphSync } = await import('../src/utils/getPinyin.js');
+
   const maps = await loadConversionMaps();
+  assert.ok(maps && maps.dict && maps.sToTMap && maps.tToSMap, 'loadConversionMaps should resolve valid conversion maps');
   assert.strictEqual(convertTextSync('测试', 'traditional', maps), '測試', 'convertTextSync converts text synchronously when maps are preloaded');
   assert.strictEqual(convertWordSync('测试', 'traditional', maps), '測試', 'convertWordSync converts words synchronously when maps are preloaded');
+
+  const engine = await loadEngine();
+  assert.ok(engine && typeof engine.pinyin === 'function' && engine.segmenter, 'loadEngine should resolve engine with pinyin and segmenter');
+
+  const syncTokens = tokenizeParagraphSync('你好世界', engine);
+  assert.ok(syncTokens.length > 0, 'tokenizeParagraphSync should segment text');
+  assert.strictEqual(syncTokens[0].isChinese, true, 'First token should be Chinese');
+
+  const asyncTokens = await tokenizeParagraph('你好世界');
+  assert.strictEqual(asyncTokens.length, syncTokens.length, 'tokenizeParagraph should yield same tokens as tokenizeParagraphSync');
 
   // Vocab tagging state logic test
   let mockVocab = [
