@@ -14,7 +14,7 @@ Minimal Chinese reading assistance with pinyin, HSK filtering, tap-to-define loo
 
 - **Local Lookup**: Dictionary lookups and HSK word list checks run entirely offline inside your browser.
 - **Private Lists**: Saved vocabulary lists are stored inside your browser's `LocalStorage`.
-- **Online Translation**: The “Translate full sentence” option in the popover sends your sentence to the public MyMemory Translation API to fetch a translation on demand.
+- **Online Translation**: The “Translate full sentence (online)” option in the definition popover sends the selected sentence to the public MyMemory Translation API on demand when online.
 
 ## Quick Start
 
