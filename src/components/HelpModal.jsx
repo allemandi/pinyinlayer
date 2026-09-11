@@ -22,7 +22,7 @@ export default function HelpModal({ isOpen, onClose }) {
     >
       <div
         ref={helpContainerRef}
-        className="w-full max-w-md max-h-[88dvh] overflow-y-auto rounded-3xl border border-rule bg-surface p-5 sm:p-7 shadow-2xl dark:border-slate-800 dark:bg-slate-950 transition-all overscroll-contain"
+        className="w-full max-w-xl sm:max-w-2xl max-h-[88dvh] overflow-y-auto rounded-3xl border border-rule bg-surface p-5 sm:p-7 shadow-2xl dark:border-slate-800 dark:bg-slate-950 transition-all overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -96,16 +96,16 @@ export default function HelpModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Privacy Note */}
+          {/* Sentence Translation & Network Requests */}
           <div className="rounded-2xl border border-rule/50 bg-surface-dim/50 p-4 dark:border-slate-800/60 dark:bg-slate-900/50">
             <div className="flex gap-3">
               <Shield size={18} className="mt-0.5 shrink-0 text-seal dark:text-rose-400" />
               <div className="space-y-1">
                 <h3 className="font-bold text-ink dark:text-slate-100 text-xs sm:text-sm">
-                  Data Privacy
+                  Sentence Translation & External Requests
                 </h3>
                 <p className="text-xs leading-normal">
-                  Sentence translations are fetched on-demand via the MyMemory Translation API. No personal accounts or tracking telemetry are required.
+                  Clicking <span className="font-semibold text-jade">Translate full sentence (online)</span> in a definition popover makes an external network connection to send the sentence text to the public MyMemory Translation API. All other operations—dictionary lookups, Pinyin annotations, HSK filtering, and saved vocabulary decks—run 100% offline inside your browser.
                 </p>
               </div>
             </div>
