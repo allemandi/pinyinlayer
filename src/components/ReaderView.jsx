@@ -172,9 +172,9 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
   );
 }
 
-function PunctuationToken({ text, reservePinyinRow, sizeConfig }) {
+function NonChineseToken({ text, reservePinyinRow, sizeConfig }) {
   return (
-    <span className="inline-flex flex-col items-center align-bottom">
+    <span className="inline-flex flex-col items-center align-bottom px-0.5">
       {reservePinyinRow && <PinyinSlot visible={false} reserveSpace sizeConfig={sizeConfig} />}
       <span className={`font-reading ${sizeConfig.char} leading-none text-ink-soft`}>{text}</span>
     </span>
@@ -269,7 +269,7 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
 
             if (!token.isChinese) {
               return (
-                <PunctuationToken
+                <NonChineseToken
                   key={tIndex}
                   text={token.text}
                   reservePinyinRow={reservePinyinRow}

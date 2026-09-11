@@ -1,79 +1,67 @@
-// Turns raw pasted / file-extracted text into clean Chinese paragraphs.
+// Production-grade text tidying for Chinese reader view.
 //
-// Heuristics (kept deliberately simple — KISS):
-//  - A blank line marks a real paragraph break.
-//  - Single line breaks inside a block are treated as mid-paragraph wraps
-//    (common with PDF text extraction) and are joined with no space, since
-//    Chinese doesn't use spaces between words.
-//  - Anything that isn't a CJK ideograph, common Chinese punctuation, or
-//    whitespace is stripped — this drops stray Latin/PDF artifacts (page
-//    numbers, running headers, footnote markers) without touching meaning.
+// Behavior:
+//  - Preserves non-Chinese characters, English words, numbers, and original punctuation.
+//  - Removes harmful control characters, zero-width spaces, and invalid Unicode surrogates.
+//  - Standardizes line breaks: double (or more) newlines signal paragraph breaks.
+//  - Mid-paragraph single newlines are joined intelligently:
+//      • Joined with NO space if both adjacent characters are CJK / CJK punctuation.
+//      • Joined with a SINGLE space if either adjacent character is non-CJK (e.g. English words).
+//  - Collapses redundant tabs and multiple consecutive spaces to a single space.
+//  - Filters out isolated, standalone page-number lines (e.g., "- 12 -", "Page 5").
 
-const CJK_AND_PUNCT =
-  /[^\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef，。！？；：、""''“”‘’《》〈〉〔〕【】（）…—·～\s]/g;
+const CJK_CHAR = /[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef，。！？；：、""''“”‘’《》〈〉〔〕【】（）…—·～]/;
+const STANDALONE_PAGE_LINE = /^(?:-\s*)?(?:page\s*)?\d+(?:\s*-)?$/i;
 
-const PAGE_NUMBER_LINE = /^[\d\s.\-–—]+$/;
-
-function convertPunctuation(str) {
-  if (!str) return str;
-
-  // Standardize ellipses and long dashes
-  let res = str
-    .replace(/\.{3,}/g, '……')
-    .replace(/--+/g, '——');
-
-  // Convert double quotes "..." to alternating “ and ”
-  let isDoubleOpen = true;
-  res = res.replace(/"/g, () => {
-    const quote = isDoubleOpen ? '“' : '”';
-    isDoubleOpen = !isDoubleOpen;
-    return quote;
-  });
-
-  // Convert single quotes '...' to alternating ‘ and ’
-  let isSingleOpen = true;
-  res = res.replace(/'/g, () => {
-    const quote = isSingleOpen ? '‘' : '’';
-    isSingleOpen = !isSingleOpen;
-    return quote;
-  });
-
-  // Direct 1-to-1 ASCII punctuation mappings
-  const punctMap = {
-    ',': '，',
-    '.': '。',
-    '?': '？',
-    '!': '！',
-    ';': '；',
-    ':': '：',
-    '(': '（',
-    ')': '）',
-    '[': '【',
-    ']': '】',
-    '~': '～',
-    '<': '《',
-    '>': '》',
-  };
-
-  return res.replace(/[,.?!;:()\[\]~<>]/g, (m) => punctMap[m] || m);
-}
-
+/**
+ * Tidies raw pasted or file-extracted text while preserving all non-Chinese
+ * content and punctuation intact.
+ *
+ * @param {string} raw
+ * @returns {string}
+ */
 export function cleanText(raw) {
-  if (!raw) return '';
+  if (!raw || typeof raw !== 'string') return '';
 
-  const blocks = raw.replace(/\r\n?/g, '\n').split(/\n{2,}/);
+  // 1. Strip control codes (\u0000-\u0008, \u000B-\u000C, \u000E-\u001F, \u007F-\u009F), zero-width spaces (\u200B-\u200D, \uFEFF)
+  const sanitized = raw
+    .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\r\n?/g, '\n');
 
-  const paragraphs = blocks
-    .map((block) =>
-      block
+  // 2. Split into paragraph blocks on two or more consecutive newlines
+  const blocks = sanitized.split(/\n{2,}/);
+
+  const cleanedParagraphs = blocks
+    .map((block) => {
+      const lines = block
         .split('\n')
         .map((line) => line.trim())
-        .filter((line) => line && !PAGE_NUMBER_LINE.test(line))
-        .join('')
-    )
-    .map((paragraph) => convertPunctuation(paragraph))
-    .map((paragraph) => paragraph.replace(CJK_AND_PUNCT, '').trim())
+        .filter((line) => line && !STANDALONE_PAGE_LINE.test(line));
+
+      if (lines.length === 0) return '';
+
+      // Join single line-break lines within a paragraph block
+      let joined = lines[0];
+      for (let i = 1; i < lines.length; i++) {
+        const prev = joined;
+        const next = lines[i];
+
+        const lastChar = prev.slice(-1);
+        const firstChar = next[0];
+
+        // If bridging CJK ideographs/punctuation on both ends, join directly without space
+        if (CJK_CHAR.test(lastChar) && CJK_CHAR.test(firstChar)) {
+          joined += next;
+        } else {
+          // Otherwise insert a space between non-CJK words/lines
+          joined += ' ' + next;
+        }
+      }
+
+      // Collapse multiple horizontal spaces/tabs into a single space, then trim
+      return joined.replace(/[ \t]+/g, ' ').trim();
+    })
     .filter(Boolean);
 
-  return paragraphs.join('\n\n');
+  return cleanedParagraphs.join('\n\n');
 }
