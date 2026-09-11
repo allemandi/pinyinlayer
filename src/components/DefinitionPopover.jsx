@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Stamp, X } from 'lucide-react';
+import { Stamp, X, Globe } from 'lucide-react';
 import { lookupWord } from '../utils/lookupWord.js';
 import { translateSentence } from '../utils/translateSentence.js';
 import { convertWordAsync } from '../utils/chineseConversion.js';
@@ -130,6 +130,10 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
   if (!target) return null;
 
   const handleTranslate = async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setTranslateError('Sentence translation requires an internet connection.');
+      return;
+    }
     setTranslating(true);
     setTranslateError('');
     try {
@@ -250,13 +254,14 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
               type="button"
               onClick={handleTranslate}
               disabled={translating}
-              className={`inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer ${
+              className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer ${
                 translating
                   ? 'bg-surface-dim text-ink-soft'
                   : 'bg-jade text-white hover:bg-jade/90'
               }`}
             >
-              {translating ? 'Translating…' : 'Translate full sentence'}
+              <Globe size={16} strokeWidth={2.25} />
+              <span>{translating ? 'Translating…' : 'Translate full sentence (online)'}</span>
             </button>
             {translation && (
               <div className="rounded-3xl bg-surface-dim px-4 py-3.5 text-sm italic leading-6 text-ink-soft dark:bg-slate-900 dark:text-slate-300">
