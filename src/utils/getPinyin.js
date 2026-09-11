@@ -4,7 +4,7 @@
 const CHINESE_CHAR = /[\u4e00-\u9fff\u3400-\u4dbf]/;
 
 let enginePromise;
-function loadEngine() {
+export function loadEngine() {
   if (!enginePromise) {
     enginePromise = Promise.all([import('pinyin-pro'), import('segmentit')]).then(
       ([{ pinyin }, { useDefault, Segment }]) => ({
@@ -14,6 +14,32 @@ function loadEngine() {
     );
   }
   return enginePromise;
+}
+
+/**
+ * Breaks one cleaned paragraph into tap-able tokens synchronously using
+ * a pre-loaded engine instance ({ pinyin, segmenter }).
+ *
+ * @param {string} paragraph
+ * @param {{ pinyin: Function, segmenter: Object }} engine
+ * @returns {{ text: string, chars: string[], pinyin: string[], isChinese: boolean }[]}
+ */
+export function tokenizeParagraphSync(paragraph, engine) {
+  if (!paragraph || !engine) return [];
+
+  const { pinyin, segmenter } = engine;
+  const words = segmenter.doSegment(paragraph, { simple: true });
+
+  return words.map((word) => {
+    const isChinese = CHINESE_CHAR.test(word);
+    const chars = Array.from(word);
+    return {
+      text: word,
+      chars,
+      isChinese,
+      pinyin: isChinese ? pinyin(word, { type: 'array', toneType: 'symbol' }) : [],
+    };
+  });
 }
 
 /**
@@ -27,18 +53,6 @@ function loadEngine() {
  */
 export async function tokenizeParagraph(paragraph) {
   if (!paragraph) return [];
-
-  const { pinyin, segmenter } = await loadEngine();
-  const words = segmenter.doSegment(paragraph, { simple: true });
-
-  return words.map((word) => {
-    const isChinese = CHINESE_CHAR.test(word);
-    const chars = Array.from(word);
-    return {
-      text: word,
-      chars,
-      isChinese,
-      pinyin: isChinese ? pinyin(word, { type: 'array', toneType: 'symbol' }) : [],
-    };
-  });
+  const engine = await loadEngine();
+  return tokenizeParagraphSync(paragraph, engine);
 }
