@@ -768,47 +768,49 @@ export default function VocabDrawer({
           </div>
         </div>
 
-        {/* Action Feedback Banner */}
-        {actionFeedback && (
-          <div className="bg-jade px-5 py-2 text-center text-xs font-bold text-white shadow-xs transition-all shrink-0">
-            {actionFeedback}
-          </div>
-        )}
+        {/* Action Feedback Banner with Live Announcement */}
+        <div aria-live="polite" aria-atomic="true">
+          {actionFeedback && (
+            <div className="bg-jade px-5 py-2 text-center text-xs font-bold text-white shadow-xs transition-all shrink-0">
+              {actionFeedback}
+            </div>
+          )}
+        </div>
 
         {/* Selection Bar & Explicit Self-Describing Bulk Action Toolbar */}
         {vocab.length > 0 && (
-          <div className="border-b border-rule bg-surface px-5 py-3 dark:border-slate-800 space-y-2.5 shrink-0">
-            <div className="flex items-center justify-between text-xs sm:text-sm">
-              <div className="flex items-center gap-2.5 text-ink-soft dark:text-slate-400">
+          <div className="border-b border-rule bg-surface px-4 py-3 sm:px-5 dark:border-slate-800 space-y-2.5 shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  className="hover:text-jade font-bold cursor-pointer py-1"
+                  className="inline-flex min-h-[44px] items-center rounded-xl bg-surface-dim px-3 py-1.5 font-bold text-ink-soft transition hover:bg-jade-soft hover:text-jade cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:bg-slate-900 dark:text-slate-300 dark:hover:text-emerald-400"
                 >
                   Select All
                 </button>
-                <span>•</span>
                 <button
                   type="button"
                   onClick={handleSelectFailed}
                   disabled={failedCount === 0}
-                  className={`font-bold cursor-pointer py-1 ${
-                    failedCount > 0 ? 'hover:text-seal text-seal' : 'opacity-40 cursor-not-allowed'
+                  className={`inline-flex min-h-[44px] items-center rounded-xl px-3 py-1.5 font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                    failedCount > 0
+                      ? 'bg-seal-soft text-seal hover:bg-seal hover:text-white cursor-pointer dark:bg-rose-950/60 dark:text-rose-300'
+                      : 'bg-surface-dim opacity-40 cursor-not-allowed text-ink-faint dark:bg-slate-900'
                   }`}
                 >
                   Failed ({failedCount})
                 </button>
-                <span>•</span>
                 <button
                   type="button"
                   onClick={handleClearSelection}
-                  className="hover:text-ink font-semibold cursor-pointer py-1"
+                  className="inline-flex min-h-[44px] items-center rounded-xl bg-surface-dim px-3 py-1.5 font-semibold text-ink-soft transition hover:bg-surface-dim/80 hover:text-ink cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
                 >
                   Clear
                 </button>
               </div>
 
-              <span className="text-xs font-bold text-ink-faint">
+              <span className="text-xs font-bold text-ink-faint shrink-0">
                 {selectedWords.size} selected
               </span>
             </div>
@@ -874,18 +876,20 @@ export default function VocabDrawer({
               {vocab.map((entry) => {
                 const isChecked = selectedWords.has(entry.word);
                 return (
-                  <li key={entry.word} className="flex items-start gap-4 px-5 py-4 hover:bg-surface-dim/40 transition">
+                  <li key={entry.word} className="flex items-start gap-3 sm:gap-4 px-4 sm:px-5 py-4 hover:bg-surface-dim/40 transition">
                     <button
                       type="button"
+                      role="checkbox"
+                      aria-checked={isChecked}
                       onClick={() => handleToggleSelectWord(entry.word)}
                       aria-label={`${isChecked ? 'Deselect' : 'Select'} ${entry.word}`}
-                      className={`mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 transition cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                      className={`mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border-2 transition cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                         isChecked
                           ? 'border-jade bg-jade text-white shadow-xs'
                           : 'border-rule bg-surface text-transparent hover:border-jade/60 dark:border-slate-700 dark:bg-slate-900'
                       }`}
                     >
-                      <Check size={16} strokeWidth={3.5} />
+                      <Check size={18} strokeWidth={3.5} />
                     </button>
 
                     <div className="min-w-0 flex-1">
