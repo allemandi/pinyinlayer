@@ -13,9 +13,9 @@
     "build:data": "node scripts/build-data.mjs"
   },
   "dependencies": {
-    "mammoth": "^1.12.2",
+    "mammoth": "^1.12.3",
     "pdfjs-dist": "^6.3.289",
-    "pinyin-pro": "^3.29.3",
+    "pinyin-pro": "^3.29.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "segmentit": "^2.0.3"
