@@ -14,6 +14,35 @@ const CJK_CHAR = /[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\uff00-\uffef，。！
 const STANDALONE_PAGE_LINE = /^(?:-\s*)?(?:page\s*)?\d+(?:\s*-)?$/i;
 
 /**
+ * Calculates accurate character and word statistics for Chinese and mixed-language text.
+ * Chinese text uses character/ideograph counts as word units, while non-CJK text uses word spaces.
+ *
+ * @param {string} text
+ * @returns {{ chars: number, words: number, cjkChars: number }}
+ */
+export function countTextStats(text) {
+  if (!text || typeof text !== 'string') {
+    return { chars: 0, words: 0, cjkChars: 0 };
+  }
+
+  // Total characters excluding whitespace
+  const chars = text.replace(/\s+/g, '').length;
+
+  // CJK Chinese characters
+  const cjkMatches = text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g) || [];
+  const cjkChars = cjkMatches.length;
+
+  // Non-CJK words (English words / alphanumeric sequences)
+  const nonCjkText = text.replace(/[\u4e00-\u9fff\u3400-\u4dbf]/g, ' ');
+  const nonCjkWords = nonCjkText.match(/[a-zA-Z0-9]+/g)?.length || 0;
+
+  // Total words = CJK characters + non-CJK words
+  const words = cjkChars + nonCjkWords;
+
+  return { chars, words, cjkChars };
+}
+
+/**
  * Tidies raw pasted or file-extracted text while preserving all non-Chinese
  * content and punctuation intact.
  *

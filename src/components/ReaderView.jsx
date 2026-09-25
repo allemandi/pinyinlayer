@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Volume2, VolumeX, Copy, Check, Sparkles, RefreshCw } from 'lucide-react';
 import { loadEngine, tokenizeParagraphSync } from '../utils/getPinyin.js';
 import { shouldShowPinyin } from '../utils/pinyinVisibility.js';
 import { loadConversionMaps, convertTextSync, convertWordSync } from '../utils/chineseConversion.js';
+import { speakText, stopSpeech } from '../utils/tts.js';
 
 const LONG_PRESS_MS = 450;
 
@@ -44,7 +46,6 @@ function splitSentences(paragraph) {
 
 async function buildParagraphs(cleanedText, charFormat) {
   const [maps, engine] = await Promise.all([loadConversionMaps(), loadEngine()]);
-  // If formatting to simplified or traditional, we do tokenization on Simplified text for best segmentation accuracy.
   const segmentingFormat = charFormat === 'original' ? 'original' : 'simplified';
   const processedText = convertTextSync(cleanedText, segmentingFormat, maps);
 
@@ -60,7 +61,6 @@ async function buildParagraphs(cleanedText, charFormat) {
       const sentence = sentences.find((s) => start >= s.start && start < s.end);
       const tokenSentence = sentence ? sentence.text : paragraph;
 
-      // If formatting to Traditional, convert the Simplified token/sentence back to Traditional Chinese
       if (charFormat === 'traditional') {
         const tradText = convertWordSync(token.text, 'traditional', maps);
         const tradChars = token.chars.map((c) => convertWordSync(c, 'traditional', maps));
@@ -162,7 +162,7 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       onPointerLeave={handlePointerUp}
-      className={`group relative inline-flex items-end gap-px rounded-md px-1 py-0.5 align-bottom transition-all duration-150 cursor-pointer select-none [-webkit-touch-callout:none] touch-manipulation hover:bg-jade-soft/90 active:bg-lavender-soft/80 hover:shadow-xs focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-jade ${
+      className={`group relative inline-flex items-end gap-px rounded-lg px-1 py-0.5 align-bottom transition-all duration-150 cursor-pointer select-none [-webkit-touch-callout:none] touch-manipulation hover:bg-jade-soft/90 active:bg-lavender-soft/80 hover:shadow-xs focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-jade ${
         saved ? `decoration-seal decoration-2 underline ${sizeConfig.underline}` : ''
       }`}
     >
@@ -194,6 +194,9 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
   const [error, setError] = useState(null);
   const [reloadToken, setReloadToken] = useState(0);
 
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [copiedToast, setCopiedToast] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     if (!cleanedText.trim()) {
@@ -223,6 +226,12 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
     };
   }, [cleanedText, charFormat, reloadToken]);
 
+  useEffect(() => {
+    return () => {
+      stopSpeech();
+    };
+  }, []);
+
   const handlePeekStart = useCallback((key) => {
     setPeekedKeys((prev) => {
       if (prev.has(key)) return prev;
@@ -241,14 +250,44 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
     });
   }, []);
 
+  const handleToggleAudio = () => {
+    if (isPlayingAudio) {
+      stopSpeech();
+      setIsPlayingAudio(false);
+    } else {
+      if (!cleanedText.trim()) return;
+      setIsPlayingAudio(true);
+      speakText(
+        cleanedText,
+        'zh-CN',
+        () => setIsPlayingAudio(false),
+        () => setIsPlayingAudio(false)
+      );
+    }
+  };
+
+  const handleCopyReaderText = () => {
+    if (!cleanedText.trim()) return;
+    navigator.clipboard?.writeText(cleanedText);
+    setCopiedToast(true);
+    setTimeout(() => setCopiedToast(false), 2500);
+  };
+
   if (!cleanedText.trim()) {
     return (
-      <div className="flex h-full items-center justify-center p-8 text-center">
-        <p className="max-w-sm text-base leading-relaxed text-ink-faint">
-          Paste Chinese text or upload a PDF/DOCX in the <span className="font-semibold text-ink-soft">Input</span> panel, then click{' '}
-          <span className="font-semibold text-ink-soft">Send to reader</span> to see it
-          here — cleaned, paragraphed, and ready to tap through.
-        </p>
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center select-none">
+        <div className="max-w-md space-y-2.5 rounded-2xl border border-rule/60 bg-surface/60 p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900/60">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-jade-soft text-jade dark:bg-emerald-950 dark:text-emerald-300">
+            <Sparkles size={20} />
+          </div>
+          <p className="font-display text-sm font-bold text-ink dark:text-slate-100">
+            Interactive Chinese Reader Canvas
+          </p>
+          <p className="text-xs leading-relaxed text-ink-faint">
+            Paste Chinese text or upload a document in the <span className="font-bold text-ink-soft dark:text-slate-300">Input</span> panel, then click{' '}
+            <span className="font-bold text-jade dark:text-sky-400">Read & Translate</span> to see layered pinyin, HSK levels, and tap definitions here.
+          </p>
+        </div>
       </div>
     );
   }
@@ -266,24 +305,10 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
             onClick={() => setReloadToken((t) => t + 1)}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-jade px-4 py-2 text-xs font-bold text-white transition hover:bg-jade/90 cursor-pointer"
           >
-            Retry
+            <RefreshCw size={14} />
+            <span>Retry Segmentation</span>
           </button>
         </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="h-full overflow-y-auto p-4 sm:p-6 space-y-6 animate-pulse" aria-busy="true" aria-live="polite">
-        {[1, 2, 3].map((p) => (
-          <div key={p} className="space-y-3">
-            <div className="h-4 bg-jade-soft/50 dark:bg-slate-800 rounded-md w-11/12" />
-            <div className="h-4 bg-jade-soft/50 dark:bg-slate-800 rounded-md w-full" />
-            <div className="h-4 bg-jade-soft/50 dark:bg-slate-800 rounded-md w-10/12" />
-          </div>
-        ))}
-        <p className="text-center text-xs text-ink-faint pt-4">Segmenting and loading annotations...</p>
       </div>
     );
   }
@@ -292,43 +317,93 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
   const sizeConfig = TEXT_SIZE_CONFIG[textSize] || TEXT_SIZE_CONFIG.md;
 
   return (
-    <div className="h-full overflow-y-auto p-4 sm:p-6">
-      {paragraphs.map((tokens, pIndex) => (
-        <p key={pIndex} className={`mb-7 ${sizeConfig.paragraph} last:mb-0`}>
-          {tokens.map((token, tIndex) => {
-            const tokenKey = `${pIndex}-${tIndex}`;
+    <div className="flex h-full flex-col bg-transparent">
+      {/* Reader Target Header Toolbar */}
+      <div className="flex items-center justify-between border-b border-rule/60 bg-surface/50 px-3.5 py-2 dark:border-slate-800 dark:bg-slate-900/50 shrink-0 select-none">
+        <span className="text-xs font-bold text-ink dark:text-slate-200">
+          Annotated Reader
+        </span>
 
-            if (!token.isChinese) {
-              return (
-                <NonChineseToken
-                  key={tIndex}
-                  text={token.text}
-                  reservePinyinRow={reservePinyinRow}
-                  sizeConfig={sizeConfig}
-                />
-              );
-            }
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <button
+            type="button"
+            onClick={handleToggleAudio}
+            title={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
+            aria-label={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
+            className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+              isPlayingAudio
+                ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
+                : 'bg-surface border-rule text-ink-soft hover:bg-surface-dim hover:text-ink dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+            }`}
+          >
+            {isPlayingAudio ? <VolumeX size={14} className="animate-pulse" /> : <Volume2 size={14} />}
+            <span>{isPlayingAudio ? 'Stop' : 'Listen'}</span>
+          </button>
 
-            const persistentPinyin = shouldShowPinyin(pinyinVisible, hskFilter, token);
-            const showPinyin = persistentPinyin || peekedKeys.has(tokenKey);
+          <button
+            type="button"
+            onClick={handleCopyReaderText}
+            title="Copy plain reader text"
+            className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+          >
+            {copiedToast ? <Check size={14} className="text-jade" /> : <Copy size={14} />}
+            <span>{copiedToast ? 'Copied' : 'Copy Text'}</span>
+          </button>
+        </div>
+      </div>
 
-            return (
-              <ChineseToken
-                key={tIndex}
-                token={token}
-                tokenKey={tokenKey}
-                showPinyin={showPinyin}
-                reservePinyinRow={reservePinyinRow}
-                saved={isSaved(token.text)}
-                onTapToken={onTapToken}
-                onPeekStart={handlePeekStart}
-                onPeekEnd={handlePeekEnd}
-                sizeConfig={sizeConfig}
-              />
-            );
-          })}
-        </p>
-      ))}
+      {/* Reader Content Body */}
+      <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+        {loading ? (
+          <div className="space-y-6 animate-pulse" aria-busy="true" aria-live="polite">
+            {[1, 2, 3].map((p) => (
+              <div key={p} className="space-y-3">
+                <div className="h-4 bg-jade-soft/50 dark:bg-slate-800 rounded-md w-11/12" />
+                <div className="h-4 bg-jade-soft/50 dark:bg-slate-800 rounded-md w-full" />
+                <div className="h-4 bg-jade-soft/50 dark:bg-slate-800 rounded-md w-10/12" />
+              </div>
+            ))}
+            <p className="text-center text-xs text-ink-faint pt-4">Segmenting and loading annotations...</p>
+          </div>
+        ) : (
+          paragraphs.map((tokens, pIndex) => (
+            <p key={pIndex} className={`mb-7 ${sizeConfig.paragraph} last:mb-0`}>
+              {tokens.map((token, tIndex) => {
+                const tokenKey = `${pIndex}-${tIndex}`;
+
+                if (!token.isChinese) {
+                  return (
+                    <NonChineseToken
+                      key={tIndex}
+                      text={token.text}
+                      reservePinyinRow={reservePinyinRow}
+                      sizeConfig={sizeConfig}
+                    />
+                  );
+                }
+
+                const persistentPinyin = shouldShowPinyin(pinyinVisible, hskFilter, token);
+                const showPinyin = persistentPinyin || peekedKeys.has(tokenKey);
+
+                return (
+                  <ChineseToken
+                    key={tIndex}
+                    token={token}
+                    tokenKey={tokenKey}
+                    showPinyin={showPinyin}
+                    reservePinyinRow={reservePinyinRow}
+                    saved={isSaved(token.text)}
+                    onTapToken={onTapToken}
+                    onPeekStart={handlePeekStart}
+                    onPeekEnd={handlePeekEnd}
+                    sizeConfig={sizeConfig}
+                  />
+                );
+              })}
+            </p>
+          ))
+        )}
+      </div>
     </div>
   );
 }

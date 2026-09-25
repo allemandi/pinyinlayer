@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { X, Eye, CheckCircle2, AlertCircle, RotateCcw, Check } from 'lucide-react';
+import { X, Eye, CheckCircle2, AlertCircle, RotateCcw, Check, Volume2, VolumeX } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
+import { speakText, stopSpeech } from '../utils/tts.js';
 
 /**
  * Full-screen Flashcard Review Modal.
  * Displays huge Chinese characters, with option to reveal pinyin + definition,
- * and mark each card as Pass or Fail.
+ * text-to-speech audio pronunciation, and mark each card as Pass or Fail.
  */
 export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus }) {
   useEscapeKey(onClose, isOpen);
@@ -14,17 +15,21 @@ export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [sessionResults, setSessionResults] = useState({}); // { [word]: 'passed' | 'failed' }
+  const [sessionResults, setSessionResults] = useState({});
   const [isFinished, setIsFinished] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
-  // Reset state when deck changes or modal opens
   useEffect(() => {
     if (isOpen) {
       setCurrentIndex(0);
       setShowAnswer(false);
       setSessionResults({});
       setIsFinished(false);
+      setIsPlayingAudio(false);
     }
+    return () => {
+      stopSpeech();
+    };
   }, [isOpen, deck]);
 
   const currentCard = deck[currentIndex];
@@ -32,6 +37,9 @@ export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus
   const handleNextCard = useCallback(
     (status) => {
       if (!currentCard) return;
+
+      stopSpeech();
+      setIsPlayingAudio(false);
 
       onTagStatus(currentCard.word, status);
       setSessionResults((prev) => ({ ...prev, [currentCard.word]: status }));
@@ -47,18 +55,34 @@ export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus
   );
 
   const handleRestart = useCallback(() => {
+    stopSpeech();
+    setIsPlayingAudio(false);
     setCurrentIndex(0);
     setShowAnswer(false);
     setSessionResults({});
     setIsFinished(false);
   }, []);
 
-  // Keyboard shortcut listener
+  const handleSpeakWord = () => {
+    if (!currentCard) return;
+    if (isPlayingAudio) {
+      stopSpeech();
+      setIsPlayingAudio(false);
+    } else {
+      setIsPlayingAudio(true);
+      speakText(
+        currentCard.word,
+        'zh-CN',
+        () => setIsPlayingAudio(false),
+        () => setIsPlayingAudio(false)
+      );
+    }
+  };
+
   useEffect(() => {
     if (!isOpen || isFinished || !currentCard) return;
 
     const handleKeyDown = (e) => {
-      // Don't interfere if user is typing in an input or textarea
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
       if (e.key === ' ' || e.key === 'Enter') {
@@ -167,9 +191,24 @@ export default function FlashcardModal({ isOpen, onClose, deck = [], onTagStatus
 
           {/* Character Display Area */}
           <div className="my-auto flex flex-col items-center justify-center text-center px-4 w-full max-w-4xl">
-            <p className="font-reading text-8xl sm:text-9xl md:text-[10rem] lg:text-[11.5rem] font-medium leading-none tracking-tight text-ink dark:text-slate-50 select-none">
-              {currentCard.word}
-            </p>
+            <div className="relative inline-flex items-center justify-center">
+              <p className="font-reading text-8xl sm:text-9xl md:text-[10rem] lg:text-[11.5rem] font-medium leading-none tracking-tight text-ink dark:text-slate-50 select-none">
+                {currentCard.word}
+              </p>
+              <button
+                type="button"
+                onClick={handleSpeakWord}
+                title={isPlayingAudio ? 'Stop pronunciation' : 'Listen to pronunciation'}
+                aria-label="Listen to pronunciation"
+                className={`absolute -right-12 sm:-right-16 top-1/2 -translate-y-1/2 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl border transition cursor-pointer ${
+                  isPlayingAudio
+                    ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
+                    : 'bg-surface border-rule text-jade hover:bg-jade-soft dark:border-slate-800 dark:bg-slate-900 dark:text-sky-400'
+                }`}
+              >
+                {isPlayingAudio ? <VolumeX size={20} /> : <Volume2 size={20} />}
+              </button>
+            </div>
 
             {/* Answer Section */}
             {showAnswer ? (

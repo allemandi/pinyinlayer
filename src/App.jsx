@@ -22,6 +22,7 @@ export default function App() {
     loadEngine().catch(() => {});
     loadConversionMaps().catch(() => {});
   }, []);
+
   const [rawText, setRawText] = useState('');
   const [cleanedText, setCleanedText] = useState('');
   const [pinyinVisible, setPinyinVisible] = useLocalStorage('pinyinlayer:pinyin', true);
@@ -44,7 +45,6 @@ export default function App() {
   const {
     decks,
     defaultDeckId,
-    activeDeckId,
     activeDeck,
     vocab,
     toggle,
@@ -63,7 +63,6 @@ export default function App() {
     importDeckPayload,
   } = useVocab();
 
-  // Auto-detect shared deck link query parameter on startup
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const searchParams = new URLSearchParams(window.location.search);
@@ -116,14 +115,19 @@ export default function App() {
 
   return (
     <div className="flex h-[100dvh] flex-col bg-paper dark:bg-slate-950">
-      <header className="flex flex-row items-center justify-between gap-4 border-b border-rule bg-surface px-4 py-3 shadow-sm shadow-black/5 sm:px-6">
+      {/* Clean Header Bar */}
+      <header className="flex flex-row items-center justify-between gap-4 border-b border-rule bg-surface px-4 py-2.5 shadow-xs shadow-black/5 dark:border-slate-800 dark:bg-slate-900 sm:px-6 shrink-0 select-none">
         <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-jade-soft text-jade shadow-inner shadow-black/10 sm:h-12 sm:w-12">
-            <Layers size={24} />
+          <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-2xl bg-jade-soft text-jade shadow-inner shadow-black/10 dark:bg-emerald-950 dark:text-emerald-300">
+            <Layers size={22} />
           </div>
           <div>
-            <h1 className="font-display text-lg font-bold tracking-tight text-ink sm:text-xl">PinyinLayer</h1>
-            <p className="text-xs sm:text-sm font-medium text-ink-soft">Reading assistance, layered.</p>
+            <h1 className="font-display text-lg font-bold tracking-tight text-ink dark:text-slate-100 sm:text-xl leading-tight">
+              PinyinLayer
+            </h1>
+            <p className="text-xs font-medium text-ink-soft dark:text-slate-400 hidden xs:block">
+              Interactive Chinese reading assistance, layered.
+            </p>
           </div>
         </div>
 
@@ -133,10 +137,10 @@ export default function App() {
             onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
             title={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3.5 py-2 text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11"
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-rule bg-surface px-3 py-2 text-xs sm:text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800"
           >
-            {themeMode === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
-            <span>{themeMode === 'dark' ? 'Light' : 'Dark'}</span>
+            {themeMode === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            <span>{themeMode === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
           </button>
 
           <button
@@ -144,17 +148,18 @@ export default function App() {
             onClick={() => setHelpOpen(true)}
             title="Help & Information"
             aria-label="Help & Information"
-            className="inline-flex items-center gap-1.5 rounded-full border border-rule bg-surface px-3.5 py-2 text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer sm:text-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11"
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-rule bg-surface px-3 py-2 text-xs sm:text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.98] cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800"
           >
-            <HelpCircle size={17} />
-            <span>Help</span>
+            <HelpCircle size={16} />
+            <span>Help & Info</span>
           </button>
         </div>
       </header>
 
+      {/* Main Translation Split Workspace */}
       <AppLayout
-        leftTitle="Input"
-        rightTitle="Reader"
+        leftTitle="Source Input"
+        rightTitle="Interactive Reader"
         expanded={expanded}
         onToggleExpand={setExpanded}
         left={
@@ -190,7 +195,7 @@ export default function App() {
         }
       />
 
-      <footer className="flex shrink-0 flex-row items-center justify-center gap-6 border-t border-rule bg-surface/95 px-4 py-3 text-sm font-medium text-ink-soft dark:border-slate-800 dark:bg-slate-950 sm:px-6">
+      <footer className="flex shrink-0 flex-row items-center justify-center gap-6 border-t border-rule bg-surface/95 px-4 py-2 text-xs sm:text-sm font-medium text-ink-soft dark:border-slate-800 dark:bg-slate-950 sm:px-6 select-none">
         <span>&copy; {new Date().getFullYear()} allemandi</span>
         <a
           href="https://github.com/allemandi/pinyinlayer"
@@ -241,7 +246,7 @@ export default function App() {
 
       <HelpModal isOpen={helpOpen} onClose={() => setHelpOpen(false)} />
 
-      {/* Production-Grade URL Import Confirmation Modal */}
+      {/* URL Deck Import Confirmation Modal */}
       {pendingImportDeck && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs transition-opacity">
           <div
