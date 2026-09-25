@@ -1,10 +1,10 @@
-import { X, Shield, Globe, HelpCircle, Layers } from 'lucide-react';
+import { X, Shield, Globe, HelpCircle, Layers, Volume2 } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 
 /**
  * HelpModal displays clear user information about PinyinLayer features,
- * offline vs online capabilities, vocabulary deck management, and privacy.
+ * offline capabilities, speech synthesis voice selection, and privacy.
  */
 export default function HelpModal({ isOpen, onClose }) {
   useEscapeKey(onClose, isOpen);
@@ -35,7 +35,7 @@ export default function HelpModal({ isOpen, onClose }) {
               <h2 id="help-modal-title" className="font-display text-base font-bold text-ink dark:text-slate-100">
                 PinyinLayer Help & Information
               </h2>
-              <p className="text-[11px] font-medium text-ink-soft">Reading assistance & offline privacy guide</p>
+              <p className="text-[11px] font-medium text-ink-soft">Reading assistance & speech synthesis guide</p>
             </div>
           </div>
           <button
@@ -58,6 +58,21 @@ export default function HelpModal({ isOpen, onClose }) {
             </p>
           </div>
 
+          {/* Natural Speech Synthesis */}
+          <div className="rounded-2xl border border-rule/50 bg-surface-dim/50 p-4 dark:border-slate-800/60 dark:bg-slate-900/50">
+            <div className="flex gap-3">
+              <Volume2 size={18} className="mt-0.5 shrink-0 text-jade" />
+              <div className="space-y-1.5">
+                <h3 className="font-bold text-ink dark:text-slate-100 text-xs sm:text-sm">
+                  Natural Chinese Speech Synthesis
+                </h3>
+                <p className="text-xs leading-normal">
+                  Audio pronunciation uses your device's built-in Chinese text-to-speech engine. PinyinLayer automatically priority-selects natural, high-definition voices (e.g. Google 普通话, Microsoft Xiaoxiao/Yunxi, or Apple Ting-Ting) and chunks sentences on punctuation for smooth, human-like cadence.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* 100% Offline Core Features */}
           <div className="rounded-2xl border border-rule/50 bg-surface-dim/50 p-4 dark:border-slate-800/60 dark:bg-slate-900/50">
             <div className="flex gap-3">
@@ -73,7 +88,7 @@ export default function HelpModal({ isOpen, onClose }) {
                   <li>Chinese text segmentation and Pinyin annotations</li>
                   <li>CC-CEDICT offline dictionary lookups</li>
                   <li>HSK difficulty filtering (Levels 1–6)</li>
-                  <li>Text-to-Speech audio speech synthesis (`window.speechSynthesis`)</li>
+                  <li>Text-to-Speech audio speech synthesis</li>
                   <li>PDF and DOCX document text extraction</li>
                   <li>Saved vocabulary decks and flashcard practice sessions</li>
                 </ul>
@@ -91,24 +106,6 @@ export default function HelpModal({ isOpen, onClose }) {
                 </h3>
                 <p className="text-xs leading-normal">
                   Clicking the explicit <span className="font-semibold text-jade">Translate full sentence (online)</span> button inside a definition popover makes an on-demand external request to the public MyMemory Translation API. No other action in the app ever connects to external servers.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Vocabulary Decks & Actions */}
-          <div className="rounded-2xl border border-rule/50 bg-surface-dim/50 p-4 dark:border-slate-800/60 dark:bg-slate-900/50">
-            <div className="flex gap-3">
-              <Layers size={18} className="mt-0.5 shrink-0 text-jade" />
-              <div className="space-y-2">
-                <h3 className="font-bold text-ink dark:text-slate-100 text-xs sm:text-sm">
-                  Vocabulary Decks & Deck Sharing
-                </h3>
-                <p className="text-xs leading-normal">
-                  <strong className="text-ink dark:text-slate-200">Default Deck:</strong> Saved words land automatically in your designated Default Deck. You can change your Default Deck at any time in the Vocab drawer.
-                </p>
-                <p className="text-xs leading-normal">
-                  <strong className="text-ink dark:text-slate-200">Sharing Decks:</strong> Clicking <span className="font-semibold text-jade">Share</span> creates a compact link (<code className="text-[11px] bg-surface px-1 py-0.5 rounded border border-rule/40 dark:border-slate-800">?deck=...</code>). Opening a share link safely sanitizes the deck payload locally before saving.
                 </p>
               </div>
             </div>
