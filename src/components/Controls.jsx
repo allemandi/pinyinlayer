@@ -60,20 +60,20 @@ export default function Controls({
   };
 
   return (
-    <div className="border-t border-rule bg-surface px-3 py-2.5 sm:px-4 sm:py-3 select-none">
-      <div className="flex items-center justify-between gap-1.5 sm:gap-2">
+    <div className="border-t border-rule bg-surface px-3 py-2.5 sm:px-4 sm:py-3 select-none shrink-0 dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex items-center justify-between gap-2">
         <button
           type="button"
           onClick={onTogglePinyin}
           aria-pressed={pinyinVisible}
-          className={`flex flex-1 sm:flex-none items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-rule px-2.5 py-2 sm:px-4 text-sm sm:text-base font-bold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11 ${
+          className={`flex flex-1 sm:flex-none items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border px-3 py-2 sm:px-4 text-xs sm:text-sm font-bold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11 cursor-pointer ${
             pinyinVisible
-              ? 'bg-jade-soft text-jade shadow-sm shadow-jade/20'
-              : 'bg-surface-dim text-ink-soft hover:bg-surface hover:text-ink'
-          } active:scale-[0.97] cursor-pointer`}
+              ? 'bg-jade-soft border-jade/30 text-jade shadow-xs dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-300'
+              : 'bg-surface-dim border-rule text-ink-soft hover:bg-surface hover:text-ink dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300'
+          } active:scale-[0.97]`}
         >
-          {pinyinVisible ? <Eye size={18} strokeWidth={2.25} /> : <EyeOff size={18} strokeWidth={2.25} />}
-          <span>{pinyinVisible ? 'Pinyin on' : 'Pinyin off'}</span>
+          {pinyinVisible ? <Eye size={17} strokeWidth={2.25} /> : <EyeOff size={17} strokeWidth={2.25} />}
+          <span>{pinyinVisible ? 'Pinyin On' : 'Pinyin Off'}</span>
         </button>
 
         <button
@@ -81,25 +81,25 @@ export default function Controls({
           onClick={() => setShowSettings(true)}
           aria-haspopup="dialog"
           aria-expanded={showSettings}
-          className={`flex flex-1 sm:flex-none items-center justify-center gap-1.5 sm:gap-2 rounded-full border px-2.5 py-2 sm:px-4 text-sm sm:text-base font-bold transition duration-150 ease-out active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11 ${
+          className={`flex flex-1 sm:flex-none items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border px-3 py-2 sm:px-4 text-xs sm:text-sm font-bold transition duration-150 ease-out active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11 ${
             showSettings
-              ? 'bg-jade border-jade text-surface shadow-sm'
-              : 'bg-surface-dim border-rule text-ink-soft hover:bg-surface hover:text-ink'
+              ? 'bg-jade border-jade text-white shadow-xs'
+              : 'bg-surface-dim border-rule text-ink-soft hover:bg-surface hover:text-ink dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300'
           }`}
         >
-          <Settings size={18} className={showSettings ? 'animate-[spin_10s_linear_infinite]' : ''} />
+          <Settings size={17} className={showSettings ? 'animate-[spin_10s_linear_infinite]' : ''} />
           <span>Settings</span>
         </button>
 
         <button
           type="button"
           onClick={onOpenVocab}
-          className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-2.5 py-2 sm:px-4 text-sm sm:text-base font-bold text-ink-soft transition duration-150 ease-out hover:bg-lavender-soft hover:text-ink active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11"
+          className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-rule bg-surface px-3 py-2 sm:px-4 text-xs sm:text-sm font-bold text-ink-soft transition duration-150 ease-out hover:bg-lavender-soft hover:text-ink active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
         >
-          <BookMarked size={18} strokeWidth={2.25} />
+          <BookMarked size={17} strokeWidth={2.25} />
           <span>Vocab</span>
           {vocabCount > 0 && (
-            <span className="rounded-full bg-seal px-2 py-0.5 text-xs font-bold text-surface animate-[scaleIn_0.2s_ease-out]">
+            <span className="rounded-full bg-seal px-2 py-0.5 text-xs font-bold text-white shadow-xs">
               {vocabCount}
             </span>
           )}
@@ -140,7 +140,7 @@ export default function Controls({
               {/* Character Formatting Section */}
               <div className="flex flex-col gap-2.5">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-ink-soft block">
+                  <span className="text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400 block">
                     Character Format
                   </span>
                   <span className="text-[11px] text-ink-faint">
@@ -148,7 +148,7 @@ export default function Controls({
                   </span>
                 </div>
 
-                <div className="flex bg-surface-dim rounded-xl p-1 border border-rule gap-1 self-start sm:self-auto dark:bg-slate-900">
+                <div className="flex bg-surface-dim rounded-2xl p-1 border border-rule gap-1 self-start sm:self-auto dark:bg-slate-900 dark:border-slate-800">
                   {[
                     { value: 'simplified', label: 'Simplified' },
                     { value: 'traditional', label: 'Traditional' },
@@ -159,9 +159,9 @@ export default function Controls({
                       type="button"
                       onClick={() => onChangeCharFormat(opt.value)}
                       aria-pressed={charFormat === opt.value}
-                      className={`flex-1 min-w-0 rounded-lg px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                      className={`flex-1 min-w-0 rounded-xl px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                         charFormat === opt.value
-                          ? 'bg-jade text-surface shadow-sm'
+                          ? 'bg-jade text-white shadow-xs'
                           : 'text-ink-soft hover:bg-jade-soft hover:text-ink dark:hover:text-slate-200'
                       }`}
                     >
@@ -171,20 +171,20 @@ export default function Controls({
                 </div>
               </div>
 
-              <div className="border-t border-rule/50 my-1" />
+              <div className="border-t border-rule/50 my-1 dark:border-slate-800" />
 
               {/* Text Size Section */}
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-ink-soft block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400 block">
                       Text Size
                     </span>
                     <span className="text-[11px] text-ink-faint">
                       Adjust reading font size in the reader
                     </span>
                   </div>
-                  <span className="text-xs font-bold text-jade uppercase tracking-wider">
+                  <span className="text-xs font-bold text-jade dark:text-sky-400 uppercase tracking-wider">
                     {{ sm: 'Small', md: 'Medium', lg: 'Large', xl: 'X-Large' }[textSize] || 'Medium'}
                   </span>
                 </div>
@@ -226,11 +226,11 @@ export default function Controls({
 
               {pinyinVisible && (
                 <>
-                  <div className="border-t border-rule/50 my-1" />
+                  <div className="border-t border-rule/50 my-1 dark:border-slate-800" />
                   {/* Pinyin Settings */}
                   <div className="flex flex-col gap-2.5">
                     <div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-ink-soft block">
+                      <span className="text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400 block">
                         Pinyin Display Mode
                       </span>
                       <span className="text-[11px] text-ink-faint">
@@ -238,14 +238,14 @@ export default function Controls({
                       </span>
                     </div>
 
-                    <div className="flex bg-surface-dim rounded-xl p-1 border border-rule gap-1 self-start sm:self-auto dark:bg-slate-900">
+                    <div className="flex bg-surface-dim rounded-2xl p-1 border border-rule gap-1 self-start sm:self-auto dark:bg-slate-900 dark:border-slate-800">
                       <button
                         type="button"
                         onClick={() => onChangeHskFilter('all')}
                         aria-pressed={hskFilter === 'all'}
-                        className={`flex-1 min-w-0 rounded-lg px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                        className={`flex-1 min-w-0 rounded-xl px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                           hskFilter === 'all'
-                            ? 'bg-lavender text-surface shadow-sm'
+                            ? 'bg-lavender text-white shadow-xs'
                             : 'text-ink-soft hover:bg-lavender-soft hover:text-ink dark:hover:text-slate-200'
                         }`}
                       >
@@ -256,9 +256,9 @@ export default function Controls({
                         type="button"
                         onClick={() => onChangeHskFilter(hskFilter === 'all' ? 3 : hskFilter)}
                         aria-pressed={hskFilter !== 'all'}
-                        className={`flex-1 min-w-0 rounded-lg px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                        className={`flex-1 min-w-0 rounded-xl px-2.5 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                           hskFilter !== 'all'
-                            ? 'bg-jade text-surface shadow-sm'
+                            ? 'bg-jade text-white shadow-xs'
                             : 'text-ink-soft hover:bg-jade-soft hover:text-ink dark:hover:text-slate-200'
                         }`}
                       >
@@ -271,7 +271,7 @@ export default function Controls({
                     <div className="mt-1 border-t border-rule/30 pt-3 dark:border-slate-800">
                       <div className="flex flex-col gap-2">
                         <div className="flex flex-col gap-2 xs:flex-row xs:items-center xs:justify-between">
-                          <p className="text-xs font-medium text-ink-soft">
+                          <p className="text-xs font-medium text-ink-soft dark:text-slate-300">
                             Hide pinyin for HSK ≤
                           </p>
                           <div className="flex flex-wrap gap-1">
@@ -282,9 +282,9 @@ export default function Controls({
                                 onClick={() => onChangeHskFilter(level)}
                                 aria-pressed={hskFilter === level}
                                 aria-label={`Hide pinyin for HSK ${level} and below`}
-                                className={`h-7 w-7 rounded-md text-xs font-bold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                                className={`h-8 w-8 rounded-xl text-xs font-bold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
                                   hskFilter === level
-                                    ? 'bg-jade text-surface shadow-sm'
+                                    ? 'bg-jade text-white shadow-xs'
                                     : 'bg-surface text-ink hover:bg-jade-soft dark:bg-slate-900 dark:text-slate-200'
                                 }`}
                               >
@@ -303,11 +303,11 @@ export default function Controls({
               )}
 
               {/* Security-Sanitized Import Deck Link Section */}
-              <div className="border-t border-rule/50 my-1" />
+              <div className="border-t border-rule/50 my-1 dark:border-slate-800" />
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-ink-soft block">
+                    <span className="text-xs font-bold uppercase tracking-wider text-ink-soft dark:text-slate-400 block">
                       Import Shared Deck
                     </span>
                     <span className="text-[11px] text-ink-faint">

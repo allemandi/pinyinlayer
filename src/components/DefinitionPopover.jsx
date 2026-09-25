@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Stamp, X, Globe } from 'lucide-react';
+import { Stamp, X, Globe, Volume2, VolumeX, Copy, Check } from 'lucide-react';
 import { lookupWord } from '../utils/lookupWord.js';
 import { translateSentence } from '../utils/translateSentence.js';
 import { convertWordAsync } from '../utils/chineseConversion.js';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 import { getHskLevel } from '../utils/hsk.js';
+import { speakText, stopSpeech } from '../utils/tts.js';
 
 const WIDTH = 380; // Desktop width for popover
 const MARGIN = 16;
@@ -21,16 +22,13 @@ function computePopoverPosition(rect, popoverElement) {
 
   const left = Math.min(Math.max(rect.left, MARGIN), viewportWidth - WIDTH - MARGIN);
 
-  // Determine vertical position: default below the token
   let top = rect.bottom + 10;
 
-  // If popover extends off the bottom of the screen, flip above the token if there's enough space
   if (top + popoverHeight > viewportHeight - MARGIN) {
     const topAbove = rect.top - popoverHeight - 10;
     if (topAbove >= MARGIN) {
       top = topAbove;
     } else {
-      // Clamped fallback if fitting neither above nor below perfectly
       top = Math.max(MARGIN, viewportHeight - popoverHeight - MARGIN);
     }
   }
@@ -39,10 +37,9 @@ function computePopoverPosition(rect, popoverElement) {
 }
 
 /**
- * Popover shown when a character/phrase is tapped in the reader. Looks up
- * CC-CEDICT definitions, offers a save-to-vocab "stamp", and translates the
- * containing sentence on demand.
- * Displays both Simplified and Traditional characters if they differ.
+ * Popover shown when a character/phrase is tapped in the reader.
+ * Formatted like DeepL Dictionary entry cards with Audio pronunciation,
+ * HSK level tags, CC-CEDICT definitions, and sentence translation.
  */
 export default function DefinitionPopover({ target, onClose, isSaved, onToggleSave }) {
   const [senses, setSenses] = useState(null);
@@ -57,7 +54,9 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
   const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 640 : false));
   const [position, setPosition] = useState({ left: MARGIN, top: MARGIN });
 
-  // Check if we are on a mobile view-port to render a centered bottom-sheet card
+  const [isPlayingWordAudio, setIsPlayingWordAudio] = useState(false);
+  const [copiedSentence, setCopiedSentence] = useState(false);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handleResize = () => {
@@ -67,7 +66,6 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Listen for Escape key to close the definition popover
   useEscapeKey(onClose, Boolean(target));
   const popoverRef = useFocusTrap(Boolean(target));
 
@@ -96,7 +94,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
           setTradWord(trad);
           setSenses(result ?? []);
         }
-      } catch (error) {
+      } catch {
         if (!cancelled) {
           setLookupError('Unable to load dictionary results right now.');
         }
@@ -111,10 +109,10 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
 
     return () => {
       cancelled = true;
+      stopSpeech();
     };
   }, [target]);
 
-  // Recalculate popover placement when content or target changes or window resizes
   useEffect(() => {
     if (!target || isMobile) return;
 
@@ -128,6 +126,22 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
   }, [target, isMobile, loading, senses, translation, popoverRef]);
 
   if (!target) return null;
+
+  const handleSpeakWord = () => {
+    if (isPlayingWordAudio) {
+      stopSpeech();
+      setIsPlayingWordAudio(false);
+    } else {
+      const wordToSpeak = simpWord || target.text;
+      setIsPlayingWordAudio(true);
+      speakText(
+        wordToSpeak,
+        'zh-CN',
+        () => setIsPlayingWordAudio(false),
+        () => setIsPlayingWordAudio(false)
+      );
+    }
+  };
 
   const handleTranslate = async () => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -147,8 +161,9 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
 
   const pinyinText = target.pinyin.join(' ');
   const saved = isSaved(target.text);
+  const checkedText = simpWord || target.text;
+  const hskLevel = getHskLevel(checkedText);
 
-  // Render centered bottom sheet style on mobile, custom-positioned popover on desktop
   const popoverStyle = isMobile
     ? { left: '50%', transform: 'translateX(-50%)', bottom: '1.25rem', top: 'auto' }
     : { left: position.left, top: position.top };
@@ -158,7 +173,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
       <div className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]" onClick={onClose} />
       <div
         ref={popoverRef}
-        className="fixed z-40 w-[calc(100vw-2.5rem)] max-h-[calc(100vh-2rem)] overflow-y-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all dark:border-slate-700 dark:bg-slate-950"
+        className="fixed z-40 w-[calc(100vw-2.5rem)] max-h-[calc(100vh-2rem)] overflow-y-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-5 sm:p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all dark:border-slate-800 dark:bg-slate-950"
         style={popoverStyle}
         role="dialog"
         aria-modal="true"
@@ -166,24 +181,45 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <h2 className="font-reading text-3xl leading-tight text-ink flex flex-wrap items-baseline gap-2">
-              <span className="font-bold">{simpWord || target.text}</span>
-              {simpWord && tradWord && simpWord !== tradWord && (
-                <span className="text-lg font-normal text-ink-soft dark:text-slate-400">
-                  ({tradWord})
+            <div className="flex items-center gap-2">
+              <h2 className="font-reading text-3xl leading-tight text-ink dark:text-slate-100 font-bold flex flex-wrap items-baseline gap-2">
+                <span>{simpWord || target.text}</span>
+                {simpWord && tradWord && simpWord !== tradWord && (
+                  <span className="text-lg font-normal text-ink-soft dark:text-slate-400">
+                    ({tradWord})
+                  </span>
+                )}
+              </h2>
+
+              <button
+                type="button"
+                onClick={handleSpeakWord}
+                title={isPlayingWordAudio ? 'Stop audio' : 'Listen to pronunciation'}
+                aria-label="Listen to word pronunciation"
+                className={`flex h-8 w-8 items-center justify-center rounded-xl border transition cursor-pointer ${
+                  isPlayingWordAudio
+                    ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
+                    : 'bg-surface-dim border-rule text-jade hover:bg-jade-soft dark:border-slate-800 dark:bg-slate-900 dark:text-sky-400'
+                }`}
+              >
+                {isPlayingWordAudio ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </button>
+            </div>
+
+            <div className="mt-1 flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-ink-faint">
+                {target.text.length > 1 ? 'phrase' : 'character'}
+              </span>
+              {hskLevel !== undefined && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-jade-soft px-2.5 py-0.5 text-[11px] font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300">
+                  HSK {hskLevel}
                 </span>
               )}
-            </h2>
-            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.24em] text-ink-faint">
-              {target.text.length > 1 ? 'phrase' : 'character'}
-              {(() => {
-                const checkedText = simpWord || target.text;
-                const hskLevel = getHskLevel(checkedText);
-                return hskLevel !== undefined ? ` • HSK ${hskLevel}` : '';
-              })()}
-            </p>
-            <p className="mt-2.5 text-base font-semibold text-jade">{pinyinText}</p>
+            </div>
+
+            <p className="mt-2 text-base font-bold text-jade dark:text-sky-400">{pinyinText}</p>
           </div>
+
           <div className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
@@ -196,10 +232,10 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
               }
               aria-label={saved ? 'Remove from vocab list' : 'Save to vocab list'}
               aria-pressed={saved}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-1.5 text-xs font-bold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer ${
                 saved
-                  ? 'bg-seal-soft border-seal/30 text-seal shadow-xs'
-                  : 'bg-surface border-rule text-ink-soft hover:bg-seal-soft hover:text-seal'
+                  ? 'bg-seal-soft border-seal/30 text-seal shadow-xs dark:bg-rose-950 dark:text-rose-300'
+                  : 'bg-surface border-rule text-ink-soft hover:bg-seal-soft hover:text-seal dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
               }`}
             >
               <Stamp
@@ -213,7 +249,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
               type="button"
               onClick={onClose}
               aria-label="Close definition popover"
-              className="rounded-full border border-rule bg-surface p-1.5 text-ink-faint transition hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer"
+              className="rounded-2xl border border-rule bg-surface p-1.5 text-ink-faint transition hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
             >
               <X size={16} strokeWidth={2.25} />
             </button>
@@ -222,53 +258,69 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
 
         <div className="space-y-3" aria-live="polite">
           {loading ? (
-            <div className="rounded-3xl bg-surface-dim p-4 dark:bg-slate-900 animate-pulse" aria-busy="true">
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-ink-faint dark:text-slate-500">Looking up definitions</p>
-              <p className="mt-2 text-sm leading-6 text-ink-soft dark:text-slate-400">Fetching dictionary results for this token.</p>
+            <div className="rounded-2xl bg-surface-dim p-4 dark:bg-slate-900 animate-pulse" aria-busy="true">
+              <p className="text-xs font-bold uppercase tracking-wider text-ink-faint dark:text-slate-500">Looking up definitions</p>
+              <p className="mt-1 text-xs leading-5 text-ink-soft dark:text-slate-400">Fetching dictionary results for this token.</p>
             </div>
           ) : lookupError ? (
-            <div className="rounded-3xl bg-butter/90 px-4 py-3 text-sm leading-6 text-seal">
+            <div className="rounded-2xl bg-butter/90 px-4 py-3 text-xs font-bold text-seal">
               {lookupError}
             </div>
           ) : senses && senses.length > 0 ? (
-            <ul className="space-y-3 text-sm leading-6 text-ink dark:text-slate-100">
+            <ul className="space-y-2 text-sm leading-relaxed text-ink dark:text-slate-100">
               {senses.map((sense, i) => (
-                <li key={i} className="rounded-3xl bg-surface-dim px-4 py-3.5 dark:bg-slate-900">
+                <li key={i} className="rounded-2xl border border-rule/60 bg-surface-dim p-3.5 dark:border-slate-800 dark:bg-slate-900">
                   {sense.t && sense.t !== (simpWord || target.text) && (
-                    <span className="text-ink-faint font-medium">({sense.t}) </span>
+                    <span className="text-xs text-ink-faint font-medium">({sense.t}) </span>
                   )}
-                  <span className="font-medium text-ink-soft dark:text-slate-200">{sense.d.join('; ')}</span>
+                  <span className="font-semibold text-ink-soft dark:text-slate-200">{sense.d.join('; ')}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <div className="rounded-3xl bg-surface-dim px-4 py-4 text-sm leading-6 text-ink-soft dark:bg-slate-900 dark:text-slate-400">
+            <div className="rounded-2xl bg-surface-dim p-4 text-xs font-medium text-ink-soft dark:bg-slate-900 dark:text-slate-400">
               No dictionary entry found for this token. You can still translate the full sentence below.
             </div>
           )}
         </div>
 
-        <div className="mt-5 border-t border-rule pt-4 dark:border-slate-700">
-          <div className="flex flex-col gap-3" aria-live="polite">
+        <div className="mt-5 border-t border-rule pt-4 dark:border-slate-800">
+          <div className="flex flex-col gap-2.5" aria-live="polite">
             <button
               type="button"
               onClick={handleTranslate}
               disabled={translating}
-              className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer ${
+              className={`inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-bold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer ${
                 translating
                   ? 'bg-surface-dim text-ink-soft'
-                  : 'bg-jade text-white hover:bg-jade/90'
+                  : 'bg-jade text-white shadow-xs hover:bg-jade/90'
               }`}
             >
-              <Globe size={16} strokeWidth={2.25} />
+              <Globe size={15} strokeWidth={2.25} />
               <span>{translating ? 'Translating…' : 'Translate full sentence (online)'}</span>
             </button>
+
             {translation && (
-              <div className="rounded-3xl bg-surface-dim px-4 py-3.5 text-sm italic leading-6 text-ink-soft dark:bg-slate-900 dark:text-slate-300">
-                “{translation}”
+              <div className="relative rounded-2xl border border-rule bg-surface-dim p-3.5 text-xs font-medium italic leading-relaxed text-ink-soft dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                <div className="flex items-start justify-between gap-2">
+                  <span>“{translation}”</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(translation);
+                      setCopiedSentence(true);
+                      setTimeout(() => setCopiedSentence(false), 2000);
+                    }}
+                    title="Copy translation"
+                    aria-label="Copy translation"
+                    className="shrink-0 text-ink-faint hover:text-ink cursor-pointer"
+                  >
+                    {copiedSentence ? <Check size={14} className="text-jade" /> : <Copy size={14} />}
+                  </button>
+                </div>
               </div>
             )}
-            {translateError && <p className="text-sm text-seal">{translateError}</p>}
+            {translateError && <p className="text-xs font-semibold text-seal">{translateError}</p>}
           </div>
         </div>
       </div>

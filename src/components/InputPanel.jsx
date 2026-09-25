@@ -1,5 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { FileUp, Eraser, ArrowRightCircle, LoaderCircle, UploadCloud } from 'lucide-react';
+import {
+  FileUp,
+  Eraser,
+  ArrowRightCircle,
+  LoaderCircle,
+  UploadCloud,
+  Clipboard,
+  Volume2,
+  VolumeX,
+  Sparkles,
+  Check,
+} from 'lucide-react';
+import { speakText, stopSpeech } from '../utils/tts.js';
 
 async function extractFromFile(file) {
   const name = file.name.toLowerCase();
@@ -60,19 +72,35 @@ async function extractFromFile(file) {
   throw new Error('Please upload a .pdf or .docx file.');
 }
 
-/**
- * Left-panel input: paste text directly, or upload a PDF/DOCX to extract
- * text from. "Send to reader" is explicit so large pastes don't re-segment
- * on every keystroke.
- */
+const SAMPLE_TEXTS = [
+  {
+    title: 'Conversational',
+    text: '你好！很高兴认识你。今天天气非常好，我们一起去喝咖啡吧！',
+  },
+  {
+    title: 'HSK 3 Story',
+    text: '我学习汉语已经半年了。虽然汉字很难写，但是我觉得非常有意思。',
+  },
+  {
+    title: 'Daily News',
+    text: '科技的发展改变了人们的生活方式。现在，手机支付在全国各地非常普及。',
+  },
+  {
+    title: 'Idiom & Wisdom',
+    text: '千里之行，始于足下。不积跬步，无以至千里；不积小流，无以成江海。',
+  },
+];
+
 export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const fileInputRef = useRef(null);
   const dragCounter = useRef(0);
 
-  // Prevent default window-level drag/drop behavior so dropped files don't trigger page navigation
+  // Prevent default window-level drag/drop behavior
   useEffect(() => {
     const preventDefault = (e) => e.preventDefault();
     window.addEventListener('dragover', preventDefault);
@@ -82,6 +110,17 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
       window.removeEventListener('drop', preventDefault);
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      stopSpeech();
+    };
+  }, []);
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 2500);
+  };
 
   const processSelectedFile = async (file) => {
     if (!file) return;
@@ -98,6 +137,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
       const text = await extractFromFile(file);
       onChangeRawText(text);
       onSubmit(text);
+      showToast('Document text extracted successfully');
     } catch (err) {
       setError(err.message || 'Could not read that file.');
     } finally {
@@ -150,6 +190,52 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
     }
   };
 
+  const handlePasteClipboard = async () => {
+    try {
+      if (navigator.clipboard?.readText) {
+        const clipText = await navigator.clipboard.readText();
+        if (clipText?.trim()) {
+          onChangeRawText(clipText);
+          showToast('Pasted from clipboard');
+        } else {
+          showToast('Clipboard is empty');
+        }
+      } else {
+        showToast('Clipboard access not supported');
+      }
+    } catch {
+      showToast('Clipboard access denied');
+    }
+  };
+
+  const handleToggleAudio = () => {
+    if (isPlayingAudio) {
+      stopSpeech();
+      setIsPlayingAudio(false);
+    } else {
+      if (!rawText.trim()) return;
+      setIsPlayingAudio(true);
+      speakText(
+        rawText,
+        'zh-CN',
+        () => setIsPlayingAudio(false),
+        () => setIsPlayingAudio(false)
+      );
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (rawText.trim()) {
+        onSubmit(rawText);
+      }
+    }
+  };
+
+  const charCount = rawText.length;
+  const wordCount = rawText.trim() ? rawText.trim().split(/\s+/).length : 0;
+
   return (
     <div
       className="relative flex h-full flex-col bg-transparent"
@@ -158,84 +244,179 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <textarea
-        value={rawText}
-        onChange={(e) => onChangeRawText(e.target.value)}
-        placeholder="粘贴中文文本… (paste Chinese text here, or drag & drop / upload a PDF/DOCX below)"
-        aria-label="Chinese text input"
-        className="min-h-0 flex-1 resize-none border-none bg-transparent p-5 font-reading text-lg leading-relaxed text-ink placeholder:font-display placeholder:text-base placeholder:text-ink-faint focus:outline-none"
-      />
-
-      {isDragging && (
-        <div
-          className="absolute inset-2 z-20 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-jade bg-surface/95 p-6 shadow-xl backdrop-blur-xs text-center transition-all animate-fadeIn dark:bg-slate-950/95"
-          aria-live="polite"
-        >
-          <UploadCloud size={44} className="text-jade animate-bounce mb-3" strokeWidth={2} />
-          <p className="font-display text-lg font-bold text-ink dark:text-slate-100">
-            Drop PDF or DOCX file here
-          </p>
-          <p className="mt-1 text-xs font-semibold text-ink-soft dark:text-slate-400">
-            Text will be extracted automatically into the reader
-          </p>
-          <span className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-jade-soft px-3.5 py-1 text-xs font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300">
-            Supported formats: .pdf, .docx
+      {/* DeepL Source Box Header Bar */}
+      <div className="flex items-center justify-between border-b border-rule/60 bg-surface/50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900/50 shrink-0 select-none">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-jade-soft px-3 py-1 text-xs font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300">
+            <span className="h-1.5 w-1.5 rounded-full bg-jade animate-pulse" />
+            中文 Chinese (Source)
           </span>
+        </div>
+
+        <div className="flex items-center gap-3 text-xs font-semibold text-ink-faint">
+          <span>{charCount} chars</span>
+          <span className="text-rule">•</span>
+          <span>{wordCount} words</span>
+        </div>
+      </div>
+
+      {/* Main Textarea Area */}
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-5">
+        <textarea
+          value={rawText}
+          onChange={(e) => onChangeRawText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Paste Chinese text here, or drag & drop a PDF/DOCX file... (Press Cmd+Enter or Ctrl+Enter to read)"
+          aria-label="Chinese text source input"
+          className="min-h-[140px] flex-1 resize-none border-none bg-transparent font-reading text-lg leading-relaxed text-ink placeholder:font-display placeholder:text-sm placeholder:text-ink-faint focus:outline-none"
+        />
+
+        {/* DeepL-Style Quick Sample Prompts when Empty */}
+        {!rawText.trim() && (
+          <div className="mt-4 pt-4 border-t border-rule/40 space-y-2.5">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-ink-soft dark:text-slate-400">
+              <Sparkles size={14} className="text-jade" />
+              <span>Try a sample Chinese text:</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {SAMPLE_TEXTS.map((sample, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    onChangeRawText(sample.text);
+                    onSubmit(sample.text);
+                  }}
+                  className="flex flex-col items-start rounded-2xl border border-rule/80 bg-surface/80 p-3 text-left transition hover:border-jade hover:bg-jade-soft/30 cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:hover:border-jade"
+                >
+                  <span className="text-xs font-bold text-jade dark:text-sky-400">
+                    {sample.title}
+                  </span>
+                  <span className="mt-1 line-clamp-1 font-reading text-xs text-ink-soft dark:text-slate-300">
+                    {sample.text}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Drag and Drop Overlay */}
+        {isDragging && (
+          <div
+            className="absolute inset-2 z-20 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-jade bg-surface/95 p-6 shadow-xl backdrop-blur-xs text-center transition-all animate-fadeIn dark:bg-slate-950/95"
+            aria-live="polite"
+          >
+            <UploadCloud size={44} className="text-jade animate-bounce mb-3" strokeWidth={2} />
+            <p className="font-display text-lg font-bold text-ink dark:text-slate-100">
+              Drop PDF or DOCX file here
+            </p>
+            <p className="mt-1 text-xs font-semibold text-ink-soft dark:text-slate-400">
+              Text will be extracted automatically into the reader
+            </p>
+            <span className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-jade-soft px-3.5 py-1 text-xs font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300">
+              Supported formats: .pdf, .docx
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Error / Toast Floating Banner */}
+      {error && (
+        <p className="border-t border-rule bg-surface px-4 py-2 text-xs font-bold text-seal dark:border-slate-700">
+          {error}
+        </p>
+      )}
+
+      {toastMessage && (
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-xs font-bold text-white shadow-lg animate-fadeIn dark:bg-slate-100 dark:text-slate-900">
+          <Check size={14} className="text-jade" />
+          <span>{toastMessage}</span>
         </div>
       )}
 
-      {error && (
-        <p className="border-t border-rule bg-surface px-4 py-2 text-base text-seal dark:border-slate-700">{error}</p>
-      )}
+      {/* DeepL Bottom Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule bg-surface px-3 py-2.5 sm:px-4 sm:py-3 select-none shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.docx"
+            onChange={handleFile}
+            className="hidden"
+          />
 
-      <div className="flex flex-row items-center gap-2 border-t border-rule bg-surface px-3 py-2.5 sm:px-4 sm:py-3 select-none">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf,.docx"
-          onChange={handleFile}
-          className="hidden"
-        />
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={busy}
-          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-3 py-2 sm:px-4 text-sm sm:text-base font-bold text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
-        >
-          {busy ? (
-            <LoaderCircle size={18} className="animate-spin" strokeWidth={2.25} />
-          ) : (
-            <FileUp size={18} strokeWidth={2.25} />
-          )}
-          <span>
-            {busy ? 'Reading…' : (
-              <>
-                <span className="sm:hidden">Upload</span>
-                <span className="hidden sm:inline">Upload File</span>
-              </>
+          <button
+            type="button"
+            onClick={handlePasteClipboard}
+            title="Paste text from clipboard"
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-rule bg-surface px-3 py-2 text-xs sm:text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.97] cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+          >
+            <Clipboard size={16} strokeWidth={2.25} />
+            <span className="hidden xs:inline">Paste</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleToggleAudio}
+            disabled={!rawText.trim()}
+            title={isPlayingAudio ? 'Stop audio speech' : 'Listen to source text'}
+            aria-label={isPlayingAudio ? 'Stop audio speech' : 'Listen to source text'}
+            className={`inline-flex items-center justify-center rounded-2xl border border-rule px-3 py-2 text-xs sm:text-sm font-bold transition active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+              isPlayingAudio
+                ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
+                : 'bg-surface text-ink-soft hover:bg-surface-dim hover:text-ink dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+            }`}
+          >
+            {isPlayingAudio ? (
+              <VolumeX size={16} className="animate-pulse" />
+            ) : (
+              <Volume2 size={16} />
             )}
-          </span>
-        </button>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => {
-            onChangeRawText('');
-            onSubmit('');
-          }}
-          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-full border border-rule bg-surface px-3 py-2 sm:px-4 text-sm sm:text-base font-bold text-ink-soft transition duration-150 ease-out hover:bg-surface-dim hover:text-ink active:scale-[0.97] cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
-        >
-          <Eraser size={18} strokeWidth={2.25} />
-          <span>Clear</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={busy}
+            title="Upload PDF or DOCX file"
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-rule bg-surface px-3 py-2 text-xs sm:text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+          >
+            {busy ? (
+              <LoaderCircle size={16} className="animate-spin" />
+            ) : (
+              <FileUp size={16} />
+            )}
+            <span className="hidden sm:inline">{busy ? 'Reading…' : 'File'}</span>
+          </button>
 
+          {rawText && (
+            <button
+              type="button"
+              onClick={() => {
+                onChangeRawText('');
+                onSubmit('');
+                stopSpeech();
+                setIsPlayingAudio(false);
+              }}
+              title="Clear text"
+              aria-label="Clear text"
+              className="inline-flex items-center justify-center rounded-2xl border border-rule bg-surface p-2 text-ink-faint transition hover:bg-surface-dim hover:text-ink active:scale-[0.97] cursor-pointer h-10 w-10 sm:h-11 sm:w-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900"
+            >
+              <Eraser size={16} />
+            </button>
+          )}
+        </div>
+
+        {/* Primary Action Button */}
         <button
           type="button"
           onClick={() => onSubmit(rawText)}
           disabled={!rawText.trim()}
-          className="ml-auto flex items-center justify-center gap-1.5 sm:gap-2 rounded-full bg-jade px-3.5 py-2 sm:px-5 text-sm sm:text-base font-bold text-surface transition duration-150 ease-out hover:bg-jade/90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+          title="Send text to interactive reader (Cmd/Ctrl + Enter)"
+          className="ml-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-jade px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-white shadow-sm transition hover:bg-jade/90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
         >
-          <span>Send to reader</span>
+          <span>Read & Translate</span>
           <ArrowRightCircle size={18} strokeWidth={2.25} />
         </button>
       </div>
