@@ -145,12 +145,18 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
           e.preventDefault();
           return;
         }
+        onPeekEnd(tokenKey);
+        e.currentTarget.blur();
         onTapToken(token, e.currentTarget.getBoundingClientRect());
       }}
       onContextMenu={(e) => e.preventDefault()}
       onMouseEnter={() => onPeekStart(tokenKey)}
       onMouseLeave={() => onPeekEnd(tokenKey)}
-      onFocus={() => onPeekStart(tokenKey)}
+      onFocus={(e) => {
+        if (e.target.matches && e.target.matches(':focus-visible')) {
+          onPeekStart(tokenKey);
+        }
+      }}
       onBlur={() => onPeekEnd(tokenKey)}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
