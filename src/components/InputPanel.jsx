@@ -10,7 +10,6 @@ import {
   VolumeX,
   Sparkles,
   Check,
-  ShieldCheck,
 } from 'lucide-react';
 import { speakText, stopSpeech } from '../utils/tts.js';
 import { countTextStats } from '../utils/cleanText.js';
@@ -244,38 +243,35 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      {/* Header Bar: Explicit 100% Offline Label and Character/Word Counts */}
-      <div className="flex items-center justify-between border-b border-rule/60 bg-surface/50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900/50 shrink-0 select-none">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-jade-soft px-3 py-1 text-xs font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300">
-            <ShieldCheck size={13} className="text-jade dark:text-emerald-400" />
-            Chinese Input (100% Offline)
-          </span>
-        </div>
+      {/* Header Bar: Clean Live Text Stats */}
+      <div className="flex items-center justify-between border-b border-rule/60 bg-surface/50 px-3.5 py-2 dark:border-slate-800 dark:bg-slate-900/50 shrink-0 select-none">
+        <span className="text-xs font-bold text-ink dark:text-slate-200">
+          Source Text
+        </span>
 
-        <div className="flex items-center gap-3 text-xs font-semibold text-ink-faint">
-          <span>{stats.chars} characters</span>
+        <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-faint">
+          <span>{stats.chars} chars</span>
           <span className="text-rule">•</span>
           <span>{stats.words} words</span>
         </div>
       </div>
 
       {/* Main Textarea Area */}
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-5">
+      <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto p-3.5 sm:p-5">
         <textarea
           value={rawText}
           onChange={(e) => onChangeRawText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Paste Chinese text here, or drag & drop a PDF/DOCX file... (Press Cmd+Enter or Ctrl+Enter to read)"
+          placeholder="Paste Chinese text here, or drag & drop a PDF/DOCX file... (Cmd+Enter or Ctrl+Enter to read)"
           aria-label="Chinese text source input"
-          className="min-h-[140px] flex-1 resize-none border-none bg-transparent font-reading text-lg leading-relaxed text-ink placeholder:font-display placeholder:text-sm placeholder:text-ink-faint focus:outline-none"
+          className="min-h-[130px] flex-1 resize-none border-none bg-transparent font-reading text-base sm:text-lg leading-relaxed text-ink placeholder:font-display placeholder:text-xs sm:placeholder:text-sm placeholder:text-ink-faint focus:outline-none"
         />
 
         {/* Sample Starter Prompts when Empty */}
         {!rawText.trim() && (
-          <div className="mt-4 pt-4 border-t border-rule/40 space-y-2.5">
+          <div className="mt-3 pt-3 border-t border-rule/40 space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-bold text-ink-soft dark:text-slate-400">
-              <Sparkles size={14} className="text-jade" />
+              <Sparkles size={13} className="text-jade" />
               <span>Try a sample Chinese text:</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -287,12 +283,12 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
                     onChangeRawText(sample.text);
                     onSubmit(sample.text);
                   }}
-                  className="flex flex-col items-start rounded-2xl border border-rule/80 bg-surface/80 p-3 text-left transition hover:border-jade hover:bg-jade-soft/30 cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:hover:border-jade"
+                  className="flex flex-col items-start rounded-xl border border-rule/80 bg-surface/80 p-2.5 text-left transition hover:border-jade hover:bg-jade-soft/30 cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:hover:border-jade"
                 >
                   <span className="text-xs font-bold text-jade dark:text-sky-400">
                     {sample.title}
                   </span>
-                  <span className="mt-1 line-clamp-1 font-reading text-xs text-ink-soft dark:text-slate-300">
+                  <span className="mt-0.5 line-clamp-1 font-reading text-xs text-ink-soft dark:text-slate-300">
                     {sample.text}
                   </span>
                 </button>
@@ -307,37 +303,34 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
             className="absolute inset-2 z-20 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-jade bg-surface/95 p-6 shadow-xl backdrop-blur-xs text-center transition-all animate-fadeIn dark:bg-slate-950/95"
             aria-live="polite"
           >
-            <UploadCloud size={44} className="text-jade animate-bounce mb-3" strokeWidth={2} />
-            <p className="font-display text-lg font-bold text-ink dark:text-slate-100">
+            <UploadCloud size={40} className="text-jade animate-bounce mb-2" strokeWidth={2} />
+            <p className="font-display text-base font-bold text-ink dark:text-slate-100">
               Drop PDF or DOCX file here
             </p>
             <p className="mt-1 text-xs font-semibold text-ink-soft dark:text-slate-400">
               Text will be extracted automatically into the reader
             </p>
-            <span className="mt-3.5 inline-flex items-center gap-1.5 rounded-full bg-jade-soft px-3.5 py-1 text-xs font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300">
-              Supported formats: .pdf, .docx
-            </span>
           </div>
         )}
       </div>
 
       {/* Error / Toast Floating Banner */}
       {error && (
-        <p className="border-t border-rule bg-surface px-4 py-2 text-xs font-bold text-seal dark:border-slate-700">
+        <p className="border-t border-rule bg-surface px-3 py-1.5 text-xs font-bold text-seal dark:border-slate-700">
           {error}
         </p>
       )}
 
       {toastMessage && (
-        <div className="absolute top-12 left-1/2 -translate-x-1/2 z-30 inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-xs font-bold text-white shadow-lg animate-fadeIn dark:bg-slate-100 dark:text-slate-900">
-          <Check size={14} className="text-jade" />
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 z-30 inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-xs font-bold text-white shadow-md animate-fadeIn dark:bg-slate-100 dark:text-slate-900">
+          <Check size={13} className="text-jade" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Bottom Action Toolbar: Elderly-friendly explicit text labels alongside icons */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule bg-surface px-3 py-2.5 sm:px-4 sm:py-3 select-none shrink-0 dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      {/* Bottom Action Toolbar: Streamlined single-row mobile layout without ugly stacking */}
+      <div className="flex items-center justify-between gap-2 border-t border-rule bg-surface px-3 py-2 shrink-0 select-none dark:border-slate-800 dark:bg-slate-900 overflow-x-auto">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <input
             ref={fileInputRef}
             type="file"
@@ -350,30 +343,30 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
             type="button"
             onClick={handlePasteClipboard}
             title="Paste text from clipboard"
-            className="inline-flex items-center gap-1.5 rounded-2xl border border-rule bg-surface px-3 py-2 text-xs sm:text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.97] cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+            className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
           >
-            <Clipboard size={16} strokeWidth={2.25} />
-            <span>Paste Clipboard</span>
+            <Clipboard size={14} strokeWidth={2.25} />
+            <span>Paste</span>
           </button>
 
           <button
             type="button"
             onClick={handleToggleAudio}
             disabled={!rawText.trim()}
-            title={isPlayingAudio ? 'Stop speech audio' : 'Listen to source text'}
-            aria-label={isPlayingAudio ? 'Stop speech audio' : 'Listen to source text'}
-            className={`inline-flex items-center gap-1.5 rounded-2xl border px-3 py-2 text-xs sm:text-sm font-bold transition active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+            title={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
+            aria-label={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
+            className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
               isPlayingAudio
                 ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
                 : 'bg-surface border-rule text-ink-soft hover:bg-surface-dim hover:text-ink dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300'
             }`}
           >
             {isPlayingAudio ? (
-              <VolumeX size={16} className="animate-pulse" />
+              <VolumeX size={14} className="animate-pulse" />
             ) : (
-              <Volume2 size={16} />
+              <Volume2 size={14} />
             )}
-            <span>{isPlayingAudio ? 'Stop Speech' : 'Listen Speech'}</span>
+            <span>{isPlayingAudio ? 'Stop' : 'Listen'}</span>
           </button>
 
           <button
@@ -381,14 +374,14 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
             onClick={() => fileInputRef.current?.click()}
             disabled={busy}
             title="Upload PDF or DOCX file"
-            className="inline-flex items-center gap-1.5 rounded-2xl border border-rule bg-surface px-3 py-2 text-xs sm:text-sm font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+            className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
           >
             {busy ? (
-              <LoaderCircle size={16} className="animate-spin" />
+              <LoaderCircle size={14} className="animate-spin" />
             ) : (
-              <FileUp size={16} />
+              <FileUp size={14} />
             )}
-            <span>{busy ? 'Reading…' : 'Upload File'}</span>
+            <span>{busy ? 'Reading…' : 'Upload'}</span>
           </button>
 
           {rawText && (
@@ -402,10 +395,10 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
               }}
               title="Clear text"
               aria-label="Clear text"
-              className="inline-flex items-center gap-1.5 rounded-2xl border border-rule bg-surface px-3 py-2 text-xs sm:text-sm font-bold text-ink-faint transition hover:bg-surface-dim hover:text-ink active:scale-[0.97] cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
+              className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2 py-1.5 text-xs font-bold text-ink-faint transition hover:bg-surface-dim hover:text-ink cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
             >
-              <Eraser size={16} />
-              <span>Clear Text</span>
+              <Eraser size={14} />
+              <span>Clear</span>
             </button>
           )}
         </div>
@@ -416,10 +409,10 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
           onClick={() => onSubmit(rawText)}
           disabled={!rawText.trim()}
           title="Send text to interactive reader (Cmd/Ctrl + Enter)"
-          className="ml-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-jade px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-white shadow-sm transition hover:bg-jade/90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer h-10 sm:h-11 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+          className="ml-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-jade px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-jade/90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer h-9 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
         >
           <span>Read & Translate</span>
-          <ArrowRightCircle size={18} strokeWidth={2.25} />
+          <ArrowRightCircle size={15} strokeWidth={2.25} />
         </button>
       </div>
     </div>

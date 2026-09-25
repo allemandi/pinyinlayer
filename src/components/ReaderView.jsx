@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Volume2, VolumeX, Copy, Check, Sparkles, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Volume2, VolumeX, Copy, Check, Sparkles, RefreshCw } from 'lucide-react';
 import { loadEngine, tokenizeParagraphSync } from '../utils/getPinyin.js';
 import { shouldShowPinyin } from '../utils/pinyinVisibility.js';
 import { loadConversionMaps, convertTextSync, convertWordSync } from '../utils/chineseConversion.js';
@@ -275,13 +275,13 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
 
   if (!cleanedText.trim()) {
     return (
-      <div className="flex h-full flex-col items-center justify-center p-8 text-center select-none">
-        <div className="max-w-md space-y-3 rounded-3xl border border-rule/60 bg-surface/60 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-jade-soft text-jade dark:bg-emerald-950 dark:text-emerald-300">
-            <Sparkles size={24} />
+      <div className="flex h-full flex-col items-center justify-center p-6 text-center select-none">
+        <div className="max-w-md space-y-2.5 rounded-2xl border border-rule/60 bg-surface/60 p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900/60">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-jade-soft text-jade dark:bg-emerald-950 dark:text-emerald-300">
+            <Sparkles size={20} />
           </div>
-          <p className="font-display text-base font-bold text-ink dark:text-slate-100">
-            Interactive Reader Canvas (100% Offline)
+          <p className="font-display text-sm font-bold text-ink dark:text-slate-100">
+            Interactive Chinese Reader Canvas
           </p>
           <p className="text-xs leading-relaxed text-ink-faint">
             Paste Chinese text or upload a document in the <span className="font-bold text-ink-soft dark:text-slate-300">Input</span> panel, then click{' '}
@@ -319,42 +319,34 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
   return (
     <div className="flex h-full flex-col bg-transparent">
       {/* Reader Target Header Toolbar */}
-      <div className="flex items-center justify-between border-b border-rule/60 bg-surface/50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900/50 shrink-0 select-none">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-jade-soft px-3 py-1 text-xs font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300">
-            <ShieldCheck size={13} />
-            Annotated Reader (100% Offline)
-          </span>
-          {pinyinVisible && (
-            <span className="text-[11px] font-semibold text-ink-faint hidden xs:inline">
-              {hskFilter === 'all' ? 'All Pinyin' : `HSK ${hskFilter + 1}+ Only`}
-            </span>
-          )}
-        </div>
+      <div className="flex items-center justify-between border-b border-rule/60 bg-surface/50 px-3.5 py-2 dark:border-slate-800 dark:bg-slate-900/50 shrink-0 select-none">
+        <span className="text-xs font-bold text-ink dark:text-slate-200">
+          Annotated Reader
+        </span>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={handleToggleAudio}
-            title={isPlayingAudio ? 'Stop speech' : 'Listen to Chinese text'}
-            aria-label={isPlayingAudio ? 'Stop speech' : 'Listen to Chinese text'}
-            className={`inline-flex items-center gap-1.5 rounded-2xl border px-3 py-1.5 text-xs font-bold transition active:scale-[0.97] cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+            title={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
+            aria-label={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
+            className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
               isPlayingAudio
                 ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
                 : 'bg-surface border-rule text-ink-soft hover:bg-surface-dim hover:text-ink dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
             }`}
           >
-            {isPlayingAudio ? <VolumeX size={15} className="animate-pulse" /> : <Volume2 size={15} />}
-            <span>{isPlayingAudio ? 'Stop Speech' : 'Listen Speech'}</span>
+            {isPlayingAudio ? <VolumeX size={14} className="animate-pulse" /> : <Volume2 size={14} />}
+            <span>{isPlayingAudio ? 'Stop' : 'Listen'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleCopyReaderText}
             title="Copy plain reader text"
-            className="inline-flex items-center gap-1.5 rounded-2xl border border-rule bg-surface px-3 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink active:scale-[0.97] cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+            className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
           >
-            {copiedToast ? <Check size={15} className="text-jade" /> : <Copy size={15} />}
+            {copiedToast ? <Check size={14} className="text-jade" /> : <Copy size={14} />}
             <span>{copiedToast ? 'Copied' : 'Copy Text'}</span>
           </button>
         </div>
