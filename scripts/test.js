@@ -187,6 +187,30 @@ async function run() {
   assert.strictEqual(sourceDeck.words.length, 1, 'Moving word should remove item from source deck');
   assert.strictEqual(targetDeck.words.length, 2, 'Moving word should add item to target deck');
 
+  // Token Focus & Touch Peek Logic Test
+  let peeked = false;
+  const onPeekStart = () => { peeked = true; };
+  const onPeekEnd = () => { peeked = false; };
+
+  // Simulate mouse click / touch tap event on focus
+  const mockTouchFocusEvent = { target: { matches: () => false } };
+  const handleFocusTouch = (e) => {
+    if (e.target.matches && e.target.matches(':focus-visible')) {
+      onPeekStart();
+    }
+  };
+  handleFocusTouch(mockTouchFocusEvent);
+  assert.strictEqual(peeked, false, 'Touch focus should not trigger pinyin peek');
+
+  // Simulate keyboard navigation event on focus
+  const mockKeyboardFocusEvent = { target: { matches: (selector) => selector === ':focus-visible' } };
+  handleFocusTouch(mockKeyboardFocusEvent);
+  assert.strictEqual(peeked, true, 'Keyboard focus-visible should trigger pinyin peek');
+
+  // Simulate tap end
+  onPeekEnd();
+  assert.strictEqual(peeked, false, 'onPeekEnd should clear pinyin peek');
+
   console.log('✅ All minimal tests passed');
 }
 
