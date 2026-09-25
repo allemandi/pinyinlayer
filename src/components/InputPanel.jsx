@@ -246,7 +246,7 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
       {/* Header Bar: Clean Live Text Stats */}
       <div className="flex items-center justify-between border-b border-rule/60 bg-surface/50 px-3.5 py-2 dark:border-slate-800 dark:bg-slate-900/50 shrink-0 select-none">
         <span className="text-xs font-bold text-ink dark:text-slate-200">
-          Source Text
+          Source Input
         </span>
 
         <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-faint">
@@ -328,9 +328,9 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
         </div>
       )}
 
-      {/* Bottom Action Toolbar: Streamlined single-row mobile layout without ugly stacking */}
-      <div className="flex items-center justify-between gap-2 border-t border-rule bg-surface px-3 py-2 shrink-0 select-none dark:border-slate-800 dark:bg-slate-900 overflow-x-auto">
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+      {/* Bottom Action Toolbar: Industry-standard zero horizontal scrollbar design */}
+      <div className="flex items-center justify-between gap-1.5 border-t border-rule bg-surface px-2.5 py-2 shrink-0 select-none dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center gap-1 min-w-0">
           <input
             ref={fileInputRef}
             type="file"
@@ -343,10 +343,11 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
             type="button"
             onClick={handlePasteClipboard}
             title="Paste text from clipboard"
-            className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+            aria-label="Paste text from clipboard"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface px-2 sm:px-3 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
           >
-            <Clipboard size={14} strokeWidth={2.25} />
-            <span>Paste</span>
+            <Clipboard size={15} strokeWidth={2.25} />
+            <span className="hidden sm:inline">Paste</span>
           </button>
 
           <button
@@ -355,18 +356,18 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
             disabled={!rawText.trim()}
             title={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
             aria-label={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
-            className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl border px-2 sm:px-3 py-1.5 text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
               isPlayingAudio
                 ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
                 : 'bg-surface border-rule text-ink-soft hover:bg-surface-dim hover:text-ink dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300'
             }`}
           >
             {isPlayingAudio ? (
-              <VolumeX size={14} className="animate-pulse" />
+              <VolumeX size={15} className="animate-pulse" />
             ) : (
-              <Volume2 size={14} />
+              <Volume2 size={15} />
             )}
-            <span>{isPlayingAudio ? 'Stop' : 'Listen'}</span>
+            <span className="hidden sm:inline">{isPlayingAudio ? 'Stop' : 'Listen'}</span>
           </button>
 
           <button
@@ -374,14 +375,15 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
             onClick={() => fileInputRef.current?.click()}
             disabled={busy}
             title="Upload PDF or DOCX file"
-            className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+            aria-label="Upload PDF or DOCX file"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface px-2 sm:px-3 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
           >
             {busy ? (
-              <LoaderCircle size={14} className="animate-spin" />
+              <LoaderCircle size={15} className="animate-spin" />
             ) : (
-              <FileUp size={14} />
+              <FileUp size={15} />
             )}
-            <span>{busy ? 'Reading…' : 'Upload'}</span>
+            <span className="hidden sm:inline">{busy ? 'Reading…' : 'Upload'}</span>
           </button>
 
           {rawText && (
@@ -395,10 +397,10 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
               }}
               title="Clear text"
               aria-label="Clear text"
-              className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2 py-1.5 text-xs font-bold text-ink-faint transition hover:bg-surface-dim hover:text-ink cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rule bg-surface px-2 sm:px-3 py-1.5 text-xs font-bold text-ink-faint transition hover:bg-surface-dim hover:text-ink cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400"
             >
-              <Eraser size={14} />
-              <span>Clear</span>
+              <Eraser size={15} />
+              <span className="hidden sm:inline">Clear</span>
             </button>
           )}
         </div>
@@ -409,7 +411,8 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
           onClick={() => onSubmit(rawText)}
           disabled={!rawText.trim()}
           title="Send text to interactive reader (Cmd/Ctrl + Enter)"
-          className="ml-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-jade px-3.5 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-jade/90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer h-9 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
+          aria-label="Read and translate text"
+          className="ml-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-jade px-3 sm:px-4 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-jade/90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer h-9 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade"
         >
           <span>Read & Translate</span>
           <ArrowRightCircle size={15} strokeWidth={2.25} />
