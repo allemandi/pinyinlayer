@@ -194,15 +194,16 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
               <button
                 type="button"
                 onClick={handleSpeakWord}
-                title={isPlayingWordAudio ? 'Stop audio' : 'Listen to pronunciation'}
+                title={isPlayingWordAudio ? 'Stop audio' : 'Listen to word pronunciation'}
                 aria-label="Listen to word pronunciation"
-                className={`flex h-8 w-8 items-center justify-center rounded-xl border transition cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition cursor-pointer ${
                   isPlayingWordAudio
                     ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
                     : 'bg-surface-dim border-rule text-jade hover:bg-jade-soft dark:border-slate-800 dark:bg-slate-900 dark:text-sky-400'
                 }`}
               >
                 {isPlayingWordAudio ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                <span>{isPlayingWordAudio ? 'Stop' : 'Listen'}</span>
               </button>
             </div>
 
@@ -243,15 +244,16 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
                 strokeWidth={2.25}
                 fill={saved ? 'currentColor' : 'none'}
               />
-              <span>{saved ? 'Saved' : 'Save'}</span>
+              <span>{saved ? 'Saved' : 'Save Word'}</span>
             </button>
             <button
               type="button"
               onClick={onClose}
               aria-label="Close definition popover"
-              className="rounded-2xl border border-rule bg-surface p-1.5 text-ink-faint transition hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+              className="inline-flex items-center gap-1 rounded-2xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-bold text-ink-faint transition hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
             >
               <X size={16} strokeWidth={2.25} />
+              <span>Close</span>
             </button>
           </div>
         </div>
@@ -311,11 +313,12 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
                       setCopiedSentence(true);
                       setTimeout(() => setCopiedSentence(false), 2000);
                     }}
-                    title="Copy translation"
-                    aria-label="Copy translation"
-                    className="shrink-0 text-ink-faint hover:text-ink cursor-pointer"
+                    title="Copy sentence translation"
+                    aria-label="Copy sentence translation"
+                    className="inline-flex items-center gap-1 shrink-0 text-ink-faint hover:text-ink cursor-pointer font-bold text-[11px]"
                   >
                     {copiedSentence ? <Check size={14} className="text-jade" /> : <Copy size={14} />}
+                    <span>{copiedSentence ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
               </div>

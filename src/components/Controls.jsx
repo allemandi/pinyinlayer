@@ -88,7 +88,7 @@ export default function Controls({
           }`}
         >
           <Settings size={17} className={showSettings ? 'animate-[spin_10s_linear_infinite]' : ''} />
-          <span>Settings</span>
+          <span>Reader Settings</span>
         </button>
 
         <button
@@ -97,7 +97,7 @@ export default function Controls({
           className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 sm:gap-2 rounded-2xl border border-rule bg-surface px-3 py-2 sm:px-4 text-xs sm:text-sm font-bold text-ink-soft transition duration-150 ease-out hover:bg-lavender-soft hover:text-ink active:scale-[0.97] cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade h-10 sm:h-11 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
         >
           <BookMarked size={17} strokeWidth={2.25} />
-          <span>Vocab</span>
+          <span>Saved Vocab</span>
           {vocabCount > 0 && (
             <span className="rounded-full bg-seal px-2 py-0.5 text-xs font-bold text-white shadow-xs">
               {vocabCount}
@@ -130,9 +130,10 @@ export default function Controls({
                 type="button"
                 onClick={() => setShowSettings(false)}
                 aria-label="Close settings dialog"
-                className="rounded-full border border-rule bg-surface p-1.5 text-ink-faint transition hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:border-slate-800 dark:bg-slate-950"
+                className="inline-flex items-center gap-1 rounded-2xl border border-rule bg-surface px-3 py-1.5 text-xs font-bold text-ink-faint transition hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:border-slate-800 dark:bg-slate-950"
               >
                 <X size={16} strokeWidth={2.25} />
+                <span>Close</span>
               </button>
             </div>
 

@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { cleanText } from '../src/utils/cleanText.js';
+import { cleanText, countTextStats } from '../src/utils/cleanText.js';
 import { shouldShowPinyin } from '../src/utils/pinyinVisibility.js';
 import { convertTextAsync, convertWordAsync } from '../src/utils/chineseConversion.js';
 import { lookupWord } from '../src/utils/lookupWord.js';
@@ -7,6 +7,16 @@ import hskWords from '../src/data/hskWords.js';
 import { encodeDeckPayload, decodeDeckPayload, getDeckShareUrl } from '../src/utils/deckShare.js';
 
 async function run() {
+  // Character & Word Counting Tests
+  const stats1 = countTextStats('你好，世界！');
+  assert.strictEqual(stats1.chars, 6, 'countTextStats should count 6 total characters including punctuation');
+  assert.strictEqual(stats1.cjkChars, 4, 'countTextStats should accurately count 4 Chinese characters');
+  assert.strictEqual(stats1.words, 4, 'countTextStats should count 4 word units for 4 Chinese characters');
+
+  const stats2 = countTextStats('Hello 世界! 123');
+  assert.strictEqual(stats2.cjkChars, 2, 'countTextStats should accurately count 2 Chinese characters in mixed text');
+  assert.strictEqual(stats2.words, 4, 'countTextStats should count 2 Chinese chars + 2 non-CJK words = 4 total words');
+
   // Original checks
   const cleaned = cleanText('你好。\n\n世界。');
   assert.strictEqual(cleaned, '你好。\n\n世界。', 'cleanText should preserve Chinese punctuation and paragraph breaks');
@@ -41,7 +51,6 @@ async function run() {
     simpText: '测试',
     simpChars: ['测', '试']
   };
-  // 测试 / 測試 is HSK 4 ("测试":4)
   assert.strictEqual(shouldShowPinyin(true, 4, traditionalToken), false, 'Should hide pinyin for Traditional HSK 4 word when HSK filter is 4');
   assert.strictEqual(shouldShowPinyin(true, 3, traditionalToken), true, 'Should show pinyin for Traditional HSK 4 word when HSK filter is 3');
 
