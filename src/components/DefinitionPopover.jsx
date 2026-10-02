@@ -7,34 +7,11 @@ import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 import { getHskLevel } from '../utils/hsk.js';
 import { speakText, stopSpeech } from '../utils/tts.js';
+import { computePopoverPosition } from '../utils/popoverPosition.js';
 
-const WIDTH = 380; // Desktop width for popover
+export { computePopoverPosition };
+
 const MARGIN = 16;
-
-function computePopoverPosition(rect, popoverElement) {
-  if (typeof window === 'undefined' || !rect) {
-    return { left: MARGIN, top: MARGIN };
-  }
-
-  const popoverHeight = popoverElement ? popoverElement.offsetHeight : 320;
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-
-  const left = Math.min(Math.max(rect.left, MARGIN), viewportWidth - WIDTH - MARGIN);
-
-  let top = rect.bottom + 10;
-
-  if (top + popoverHeight > viewportHeight - MARGIN) {
-    const topAbove = rect.top - popoverHeight - 10;
-    if (topAbove >= MARGIN) {
-      top = topAbove;
-    } else {
-      top = Math.max(MARGIN, viewportHeight - popoverHeight - MARGIN);
-    }
-  }
-
-  return { left: Math.max(left, MARGIN), top: Math.max(top, MARGIN) };
-}
 
 /**
  * Popover shown when a character/phrase is tapped in the reader.

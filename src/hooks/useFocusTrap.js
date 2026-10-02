@@ -28,7 +28,7 @@ export function useFocusTrap(isOpen) {
     // Auto focus first element after mounting/opening
     const focusable = getFocusableElements();
     if (focusable.length > 0) {
-      focusable[0].focus();
+      focusable[0].focus({ preventScroll: true });
     }
 
     const handleKeyDown = (e) => {
@@ -46,12 +46,12 @@ export function useFocusTrap(isOpen) {
       if (e.shiftKey) {
         if (document.activeElement === firstElement || !containerRef.current?.contains(document.activeElement)) {
           e.preventDefault();
-          lastElement.focus();
+          lastElement.focus({ preventScroll: true });
         }
       } else {
         if (document.activeElement === lastElement || !containerRef.current?.contains(document.activeElement)) {
           e.preventDefault();
-          firstElement.focus();
+          firstElement.focus({ preventScroll: true });
         }
       }
     };
@@ -61,7 +61,7 @@ export function useFocusTrap(isOpen) {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
-        previousFocusRef.current.focus();
+        previousFocusRef.current.focus({ preventScroll: true });
       }
     };
   }, [isOpen]);
