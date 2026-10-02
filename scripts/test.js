@@ -220,6 +220,25 @@ async function run() {
   onPeekEnd();
   assert.strictEqual(peeked, false, 'onPeekEnd should clear pinyin peek');
 
+  // Popover Positioning Boundary Unit Tests
+  const { computePopoverPosition } = await import('../src/utils/popoverPosition.js');
+  global.window = { innerWidth: 1024, innerHeight: 768 };
+
+  // Standard positioning below target rect
+  const posNormal = computePopoverPosition({ left: 200, top: 100, bottom: 120 }, { offsetHeight: 250 });
+  assert.strictEqual(posNormal.left, 200, 'computePopoverPosition should place popover at target left when within bounds');
+  assert.strictEqual(posNormal.top, 130, 'computePopoverPosition should place popover below target when vertical space is available');
+
+  // Clamp right overflow
+  const posRightOverflow = computePopoverPosition({ left: 900, top: 100, bottom: 120 }, { offsetHeight: 250 });
+  assert.ok(posRightOverflow.left <= 1024 - 380 - 16, 'computePopoverPosition should clamp left coordinate from overflowing right edge');
+
+  // Clamp bottom overflow by positioning above target
+  const posBottomOverflow = computePopoverPosition({ left: 200, top: 600, bottom: 620 }, { offsetHeight: 250 });
+  assert.strictEqual(posBottomOverflow.top, 600 - 250 - 10, 'computePopoverPosition should position popover above target when bottom edge exceeds viewport');
+
+  delete global.window;
+
   console.log('✅ All minimal tests passed');
 }
 
