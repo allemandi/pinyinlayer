@@ -4,13 +4,11 @@
 //   src/data/dict.json      -> { "word": [{ t?, p, d:[...] }] }
 //   src/data/hskWords.js    -> export default { "word": 1..7 }
 //
-// The dictionary is trimmed to HSK vocabulary — enough for quick
-// "how is this pronounced, what does it mean" scanning without shipping
-// the full 120k-entry CC-CEDICT payload. Any HSK headwords missing in
+// The dictionary includes all CC-CEDICT vocabulary and prioritizes standard
+// real-word meanings over surname/abbreviation entries. Any HSK headwords missing in
 // CC-CEDICT fall back to definitions and pinyin from the HSK dataset.
 // Single characters appearing in HSK compounds derive their HSK level from
-// the minimum level among compounds they belong to (e.g. 工 inherits HSK 1
-// from 工作 / 工人).
+// the minimum level among compounds they belong to.
 //
 // Run with: npm run build:data
 import { writeFileSync, readFileSync } from 'node:fs';
@@ -49,19 +47,52 @@ for (const [word, level] of Object.entries(levelOf)) {
   }
 }
 
-// Keep HSK headwords plus any single character that appears in the HSK lists.
-const keepWords = new Set(Object.keys(levelOf));
+function isSurnameOrAbbr(str) {
+  if (!str) return false;
+  const s = str.trim();
+  return /^surname\s+/i.test(s) || /^surname$/i.test(s) || /^abbr\.\s+for\s+/i.test(s);
+}
 
-const dict = {};
+function cleanEnglishList(engList) {
+  const list = Array.isArray(engList) ? engList : [engList];
+  return list.filter((d) => !isSurnameOrAbbr(d));
+}
+
+// Group CEDICT entries by simplified headword
+const cedictByWord = new Map();
 for (const e of cedict) {
   const word = e.simplified;
-  if (!word || !keepWords.has(word)) continue;
+  if (!word) continue;
+  if (!cedictByWord.has(word)) {
+    cedictByWord.set(word, []);
+  }
+  cedictByWord.get(word).push(e);
+}
 
-  const rawEnglish = Array.isArray(e.english) ? e.english[0] : e.english.split(/;\s*/)[0];
-  const english = rawEnglish ? rawEnglish.trim() : '';
-  const sense = { p: e.pinyin, d: [english] };
-  if (e.traditional && e.traditional !== word) sense.t = e.traditional;
-  (dict[word] ||= []).push(sense);
+const dict = {};
+
+for (const [word, entries] of cedictByWord.entries()) {
+  // Find best entry with real word definition (non-surname, non-abbr)
+  let bestEntry = entries.find((e) => cleanEnglishList(e.english).length > 0);
+  if (!bestEntry) bestEntry = entries[0];
+
+  const cleaned = cleanEnglishList(bestEntry.english);
+  const rawList = Array.isArray(bestEntry.english) ? bestEntry.english : [bestEntry.english];
+  const sourceList = cleaned.length > 0 ? cleaned : rawList;
+
+  // Filter out CL: (classifier) tags if other definitions exist
+  const defsWithoutCL = sourceList.filter((d) => !/^CL:/i.test(d));
+  const finalDefs = defsWithoutCL.length > 0 ? defsWithoutCL : sourceList;
+
+  // Join top 2 definitions
+  const definitionString = finalDefs.slice(0, 2).map((s) => s.trim()).filter(Boolean).join('; ');
+
+  const sense = { p: bestEntry.pinyin, d: [definitionString] };
+  if (bestEntry.traditional && bestEntry.traditional !== word) {
+    sense.t = bestEntry.traditional;
+  }
+
+  dict[word] = [sense];
 }
 
 // Fallback: Populate definitions/pinyin/traditional for any HSK headwords missing from CC-CEDICT
@@ -79,10 +110,6 @@ for (const word of Object.keys(levelOf)) {
       addedFromHskCount++;
     }
   }
-}
-
-for (const word of Object.keys(dict)) {
-  dict[word] = dict[word].slice(0, 1);
 }
 
 writeFileSync('src/data/dict.json', JSON.stringify(dict));

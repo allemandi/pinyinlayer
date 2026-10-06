@@ -1,6 +1,29 @@
-// HSK-trimmed CC-CEDICT lookup. The dictionary is built from HSK vocabulary
-// only (see scripts/build-data.mjs) and lazy-loaded on first tap.
+// CC-CEDICT lookup. The dictionary is loaded on demand.
 import { loadConversionMaps } from './chineseConversion.js';
+
+/**
+ * Checks if a definition string is purely a surname or abbreviation reference.
+ *
+ * @param {string} def
+ * @returns {boolean}
+ */
+function isSurnameOrAbbr(def) {
+  if (!def) return false;
+  const s = def.trim();
+  return /^surname\s+/i.test(s) || /^surname$/i.test(s) || /^abbr\.\s+for\s+/i.test(s);
+}
+
+/**
+ * Filter character senses to prefer standard real-word meanings over surname/abbreviation entries.
+ *
+ * @param {{ t?: string, p: string, d: string[] }[]} senses
+ * @returns {{ t?: string, p: string, d: string[] }[]}
+ */
+function filterSenses(senses) {
+  if (!senses || !senses.length) return [];
+  const nonSurname = senses.filter((s) => s.d && s.d.some((def) => !isSurnameOrAbbr(def)));
+  return nonSurname.length > 0 ? nonSurname : senses;
+}
 
 /**
  * Looks up definitions for a word or phrase. Matches both Simplified and Traditional
@@ -14,22 +37,28 @@ export async function lookupWord(word) {
   const { dict, tToSMap } = await loadConversionMaps();
 
   // 1. Direct match (Simplified or exact match)
-  if (dict[word]) return dict[word];
+  if (dict[word]) return filterSenses(dict[word]);
 
   // 2. Try converting word to Simplified for lookup
   let simplifiedWord = '';
   for (const char of word) {
     simplifiedWord += tToSMap[char] || char;
   }
-  if (dict[simplifiedWord]) return dict[simplifiedWord];
+  if (dict[simplifiedWord]) return filterSenses(dict[simplifiedWord]);
 
   // 3. Fallback: character-by-character lookup with conversion fallback
   if (word.length > 1) {
     const perChar = Array.from(word)
       .map((char) => {
-        if (dict[char]) return dict[char];
-        const simpChar = tToSMap[char];
-        if (simpChar && dict[simpChar]) return dict[simpChar];
+        let senses = dict[char];
+        if (!senses) {
+          const simpChar = tToSMap[char];
+          if (simpChar && dict[simpChar]) senses = dict[simpChar];
+        }
+        if (senses) {
+          const filtered = filterSenses(senses);
+          return filtered.length ? filtered : senses;
+        }
         return null;
       })
       .filter(Boolean)
