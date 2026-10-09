@@ -21,6 +21,7 @@ import {
   ClipboardCopy,
   ShieldCheck,
   Layers,
+  Search,
 } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
@@ -408,6 +409,7 @@ export default function VocabDrawer({
   const [selectedWords, setSelectedWords] = useState(() => new Set(vocab.map((v) => v.word)));
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [cardOrder, setCardOrder] = useState('sequential');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showNewDeckInput, setShowNewDeckInput] = useState(false);
   const [newDeckNameInput, setNewDeckNameInput] = useState('');
   const [isRenamingDeck, setIsRenamingDeck] = useState(false);
@@ -429,8 +431,17 @@ export default function VocabDrawer({
     }
   }, [isOpen, activeDeck?.id, vocab.length]);
 
+  const filteredVocab = vocab.filter((entry) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.trim().toLowerCase();
+    const matchWord = entry.word.toLowerCase().includes(q);
+    const matchPinyin = entry.pinyin?.toLowerCase().includes(q);
+    const matchDef = entry.definitions?.some((d) => d.toLowerCase().includes(q));
+    return matchWord || matchPinyin || matchDef;
+  });
+
   const handleSelectAll = () => {
-    setSelectedWords(new Set(vocab.map((v) => v.word)));
+    setSelectedWords(new Set(filteredVocab.map((v) => v.word)));
   };
 
   const handleSelectFailed = () => {
@@ -777,6 +788,33 @@ export default function VocabDrawer({
           )}
         </div>
 
+        {/* Real-Time Search Bar */}
+        {vocab.length > 0 && (
+          <div className="border-b border-rule bg-paper px-4 py-2.5 sm:px-5 dark:border-slate-800 dark:bg-slate-950/40 shrink-0">
+            <div className="relative flex items-center">
+              <Search size={15} className="absolute left-3.5 text-ink-faint pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search words, pinyin, or definitions..."
+                aria-label="Search saved vocabulary words"
+                className="w-full h-10 rounded-xl border border-rule bg-surface pl-9 pr-8 text-xs sm:text-sm font-medium text-ink placeholder:text-ink-faint focus:border-jade focus:outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search filter"
+                  className="absolute right-2.5 flex h-6 w-6 items-center justify-center rounded-full text-ink-faint hover:bg-surface-dim hover:text-ink cursor-pointer dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Selection Bar & Explicit Self-Describing Bulk Action Toolbar */}
         {vocab.length > 0 && (
           <div className="border-b border-rule bg-surface px-4 py-3 sm:px-5 dark:border-slate-800 space-y-2.5 shrink-0">
@@ -871,9 +909,23 @@ export default function VocabDrawer({
                 Tap any word in the reader and stamp it to save it here, or copy/move words from another deck.
               </p>
             </div>
+          ) : filteredVocab.length === 0 ? (
+            <div className="p-8 text-center text-ink-faint space-y-3">
+              <p className="text-base font-bold text-ink dark:text-slate-200">No matching words found.</p>
+              <p className="text-xs leading-relaxed max-w-xs mx-auto">
+                No saved words match "{searchQuery}".
+              </p>
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-rule bg-surface px-3 py-1.5 text-xs font-bold text-jade hover:bg-jade-soft cursor-pointer dark:border-slate-800 dark:bg-slate-900"
+              >
+                Clear Search
+              </button>
+            </div>
           ) : (
             <ul className="divide-y divide-rule dark:divide-slate-800 pb-20 sm:pb-6">
-              {vocab.map((entry) => {
+              {filteredVocab.map((entry) => {
                 const isChecked = selectedWords.has(entry.word);
                 return (
                   <li key={entry.word} className="flex items-start gap-3 sm:gap-4 px-4 sm:px-5 py-4 hover:bg-surface-dim/40 transition">

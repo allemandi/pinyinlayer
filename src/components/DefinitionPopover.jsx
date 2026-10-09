@@ -201,6 +201,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
           <div className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
+              disabled={loading}
               onClick={() =>
                 onToggleSave({
                   word: target.text,
@@ -210,10 +211,12 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
               }
               aria-label={saved ? 'Remove from vocab list' : 'Save to vocab list'}
               aria-pressed={saved}
-              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-1.5 text-xs font-bold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer ${
-                saved
-                  ? 'bg-seal-soft border-seal/30 text-seal shadow-xs dark:bg-rose-950 dark:text-rose-300'
-                  : 'bg-surface border-rule text-ink-soft hover:bg-seal-soft hover:text-seal dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+              className={`flex items-center gap-1.5 rounded-2xl border px-3 py-1.5 text-xs font-bold transition duration-150 ease-out focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+                loading
+                  ? 'opacity-50 cursor-not-allowed border-rule bg-surface text-ink-faint'
+                  : saved
+                  ? 'bg-seal-soft border-seal/30 text-seal shadow-xs dark:bg-rose-950 dark:text-rose-300 cursor-pointer'
+                  : 'bg-surface border-rule text-ink-soft hover:bg-seal-soft hover:text-seal dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 cursor-pointer'
               }`}
             >
               <Stamp
