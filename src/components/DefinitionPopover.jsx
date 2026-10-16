@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { Stamp, X, Globe, Volume2, VolumeX, Copy, Check } from 'lucide-react';
 import { lookupWord } from '../utils/lookupWord.js';
 import { translateSentence } from '../utils/translateSentence.js';
@@ -90,7 +90,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     };
   }, [target]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!target || isMobile) return;
 
     const updatePosition = () => {
@@ -98,8 +98,23 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     };
 
     updatePosition();
+
     window.addEventListener('resize', updatePosition);
-    return () => window.removeEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+
+    let resizeObserver;
+    if (popoverRef.current && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(updatePosition);
+      resizeObserver.observe(popoverRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
   }, [target, isMobile, loading, senses, translation, popoverRef]);
 
   if (!target) return null;
@@ -142,60 +157,32 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
   const hskLevel = getHskLevel(checkedText);
 
   const popoverStyle = isMobile
-    ? { left: '50%', transform: 'translateX(-50%)', bottom: '1.25rem', top: 'auto' }
+    ? {}
     : { left: position.left, top: position.top };
 
   return (
     <>
-      <div className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]" onClick={onClose} />
+      <div className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]" onClick={onClose} aria-hidden="true" />
       <div
         ref={popoverRef}
-        className="fixed z-40 w-[calc(100vw-2.5rem)] max-h-[calc(100vh-2rem)] overflow-y-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-5 sm:p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all dark:border-slate-800 dark:bg-slate-950"
+        tabIndex={-1}
+        className="fixed z-40 left-3 right-3 bottom-3 max-h-[calc(100dvh-2rem)] sm:left-auto sm:right-auto sm:bottom-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md overflow-y-auto rounded-3xl border border-rule bg-surface p-4 sm:p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all focus:outline-none dark:border-slate-800 dark:bg-slate-950"
         style={popoverStyle}
         role="dialog"
         aria-modal="true"
         aria-label={`Definition for ${target.text}`}
       >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h2 className="font-reading text-3xl leading-tight text-ink dark:text-slate-100 font-bold flex flex-wrap items-baseline gap-2">
-                <span>{simpWord || target.text}</span>
-                {simpWord && tradWord && simpWord !== tradWord && (
-                  <span className="text-lg font-normal text-ink-soft dark:text-slate-400">
-                    ({tradWord})
-                  </span>
-                )}
-              </h2>
-
-              <button
-                type="button"
-                onClick={handleSpeakWord}
-                title={isPlayingWordAudio ? 'Stop audio' : 'Listen to word pronunciation'}
-                aria-label="Listen to word pronunciation"
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border text-xs font-bold transition cursor-pointer ${
-                  isPlayingWordAudio
-                    ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
-                    : 'bg-surface-dim border-rule text-jade hover:bg-jade-soft dark:border-slate-800 dark:bg-slate-900 dark:text-sky-400'
-                }`}
-              >
-                {isPlayingWordAudio ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                <span>{isPlayingWordAudio ? 'Stop' : 'Listen'}</span>
-              </button>
-            </div>
-
-            <div className="mt-1 flex items-center gap-2 flex-wrap">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-ink-faint">
-                {target.text.length > 1 ? 'phrase' : 'character'}
+        {/* Header Tier 1: Metadata Badges & Action Buttons */}
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="rounded-md bg-surface-dim px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-ink-faint dark:bg-slate-900">
+              {target.text.length > 1 ? 'phrase' : 'character'}
+            </span>
+            {hskLevel !== undefined && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-jade-soft px-2.5 py-0.5 text-[11px] font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300">
+                HSK {hskLevel}
               </span>
-              {hskLevel !== undefined && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-jade-soft px-2.5 py-0.5 text-[11px] font-bold text-jade dark:bg-emerald-950 dark:text-emerald-300">
-                  HSK {hskLevel}
-                </span>
-              )}
-            </div>
-
-            <p className="mt-2 text-base font-bold text-jade dark:text-sky-400">{pinyinText}</p>
+            )}
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
@@ -233,9 +220,43 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
               className="inline-flex items-center gap-1 rounded-2xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-bold text-ink-faint transition hover:bg-surface-dim hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade cursor-pointer dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
             >
               <X size={16} strokeWidth={2.25} />
-              <span>Close</span>
+              <span className="hidden sm:inline">Close</span>
             </button>
           </div>
+        </div>
+
+        {/* Header Tier 2: Chinese Word / Phrase Title */}
+        <div className="mb-2">
+          <h2 className="font-reading text-2xl sm:text-3xl font-bold leading-tight text-ink dark:text-slate-100 break-words flex flex-wrap items-baseline gap-2">
+            <span>{simpWord || target.text}</span>
+            {simpWord && tradWord && simpWord !== tradWord && (
+              <span className="text-base sm:text-lg font-normal text-ink-soft dark:text-slate-400">
+                ({tradWord})
+              </span>
+            )}
+          </h2>
+        </div>
+
+        {/* Header Tier 3: Pronunciation & Audio Button */}
+        <div className="mb-4 flex items-center justify-between gap-2 border-b border-rule/50 pb-3 dark:border-slate-800">
+          <p className="text-sm sm:text-base font-bold text-jade dark:text-sky-400 break-words min-w-0">
+            {pinyinText}
+          </p>
+
+          <button
+            type="button"
+            onClick={handleSpeakWord}
+            title={isPlayingWordAudio ? 'Stop audio' : 'Listen to word pronunciation'}
+            aria-label="Listen to word pronunciation"
+            className={`inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-2xl border text-xs font-bold transition cursor-pointer ${
+              isPlayingWordAudio
+                ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
+                : 'bg-surface-dim border-rule text-jade hover:bg-jade-soft dark:border-slate-800 dark:bg-slate-900 dark:text-sky-400'
+            }`}
+          >
+            {isPlayingWordAudio ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            <span>{isPlayingWordAudio ? 'Stop' : 'Listen'}</span>
+          </button>
         </div>
 
         <div className="space-y-3" aria-live="polite">

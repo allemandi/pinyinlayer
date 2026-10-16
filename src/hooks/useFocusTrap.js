@@ -25,10 +25,14 @@ export function useFocusTrap(isOpen) {
       ).filter((el) => !el.hasAttribute('disabled') && el.getAttribute('tabindex') !== '-1');
     };
 
-    // Auto focus first element after mounting/opening
-    const focusable = getFocusableElements();
-    if (focusable.length > 0) {
-      focusable[0].focus({ preventScroll: true });
+    // Auto focus container if focusable (e.g. tabindex="-1"), otherwise first focusable element
+    if (containerRef.current && containerRef.current.hasAttribute('tabindex')) {
+      containerRef.current.focus({ preventScroll: true });
+    } else {
+      const focusable = getFocusableElements();
+      if (focusable.length > 0) {
+        focusable[0].focus({ preventScroll: true });
+      }
     }
 
     const handleKeyDown = (e) => {
