@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { Stamp, X, Globe, Volume2, VolumeX, Copy, Check } from 'lucide-react';
 import { lookupWord } from '../utils/lookupWord.js';
 import { translateSentence } from '../utils/translateSentence.js';
@@ -90,7 +90,7 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     };
   }, [target]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!target || isMobile) return;
 
     const updatePosition = () => {
@@ -98,8 +98,23 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
     };
 
     updatePosition();
+
     window.addEventListener('resize', updatePosition);
-    return () => window.removeEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+
+    let resizeObserver;
+    if (popoverRef.current && typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(updatePosition);
+      resizeObserver.observe(popoverRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
   }, [target, isMobile, loading, senses, translation, popoverRef]);
 
   if (!target) return null;
@@ -147,10 +162,11 @@ export default function DefinitionPopover({ target, onClose, isSaved, onToggleSa
 
   return (
     <>
-      <div className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]" onClick={onClose} />
+      <div className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px]" onClick={onClose} aria-hidden="true" />
       <div
         ref={popoverRef}
-        className="fixed z-40 w-[calc(100vw-2.5rem)] max-h-[calc(100vh-2rem)] overflow-y-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-5 sm:p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all dark:border-slate-800 dark:bg-slate-950"
+        tabIndex={-1}
+        className="fixed z-40 w-[calc(100vw-2.5rem)] max-h-[calc(100vh-2rem)] overflow-y-auto sm:w-auto sm:min-w-[24rem] sm:max-w-md rounded-3xl border border-rule bg-surface p-5 sm:p-6 shadow-2xl shadow-black/15 ring-1 ring-white/70 transition-all focus:outline-none dark:border-slate-800 dark:bg-slate-950"
         style={popoverStyle}
         role="dialog"
         aria-modal="true"
