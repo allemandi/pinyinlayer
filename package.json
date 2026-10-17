@@ -15,7 +15,7 @@
   "dependencies": {
     "mammoth": "^1.13.0",
     "pdfjs-dist": "^6.4.299",
-    "pinyin-pro": "^3.29.4",
+    "pinyin-pro": "^3.29.5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "segmentit": "^2.0.3"
@@ -26,6 +26,6 @@
     "cedict-json": "^1.3.20251213",
     "lucide-react": "^1.52.0",
     "tailwindcss": "^4.3.3",
-    "vite": "^8.3.3"
+    "vite": "^8.3.4"
   }
 }
