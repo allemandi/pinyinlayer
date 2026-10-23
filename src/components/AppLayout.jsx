@@ -1,6 +1,6 @@
 import { Maximize2, Minimize2 } from 'lucide-react';
 
-function Pane({ title, expandKey, expanded, onToggleExpand, children }) {
+function Pane({ title, headerActions, expandKey, expanded, onToggleExpand, children }) {
   const isExpanded = expanded === expandKey;
   const isMinimized = Boolean(expanded) && !isExpanded;
 
@@ -14,29 +14,53 @@ function Pane({ title, expandKey, expanded, onToggleExpand, children }) {
           : 'min-h-0 flex-1 md:flex-[3] border-rule dark:border-slate-800 shadow-md shadow-black/5'
       }`}
     >
-      <button
-        type="button"
-        onClick={() => onToggleExpand(isExpanded ? null : expandKey)}
-        className={`flex shrink-0 items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-surface-dim cursor-pointer ${
+      <div
+        className={`flex shrink-0 items-center justify-between border-b border-rule bg-surface/80 transition-colors dark:border-slate-800 select-none ${
           isMinimized
-            ? 'h-full w-full justify-between md:h-full md:w-14 md:flex-col md:justify-center md:gap-2 md:py-4'
-            : 'w-full justify-between border-b border-rule dark:border-slate-800'
+            ? 'h-full w-full justify-between p-2.5 md:h-full md:w-14 md:flex-col md:justify-center md:gap-2 md:py-4 border-b-0 cursor-pointer'
+            : 'px-3.5 py-2'
         }`}
-        aria-label={isExpanded ? `Restore ${title} panel` : `Expand ${title} panel`}
+        onClick={isMinimized ? () => onToggleExpand(expandKey) : undefined}
       >
-        <span
-          className={`font-display text-base font-semibold tracking-wide transition-all duration-300 ${
-            isMinimized
-              ? 'text-ink-faint group-hover:text-jade md:[writing-mode:vertical-rl] md:rotate-180'
-              : 'text-ink-soft'
+        <button
+          type="button"
+          onClick={() => onToggleExpand(isExpanded ? null : expandKey)}
+          className={`flex items-center gap-2 text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade rounded-lg transition-colors hover:text-jade ${
+            isMinimized ? 'h-full w-full justify-between md:h-full md:w-14 md:flex-col md:justify-center' : ''
           }`}
+          aria-label={isExpanded ? `Restore ${title} panel` : `Expand ${title} panel`}
         >
-          {title}
-        </span>
-        <span className={`transition-all duration-300 ${isMinimized ? 'text-ink-faint group-hover:text-jade group-hover:scale-110' : 'text-ink-faint'}`}>
-          {isExpanded ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-        </span>
-      </button>
+          <span
+            className={`font-display text-sm sm:text-base font-bold tracking-wide text-ink dark:text-slate-100 transition-all duration-300 ${
+              isMinimized
+                ? 'text-ink-faint group-hover:text-jade md:[writing-mode:vertical-rl] md:rotate-180'
+                : ''
+            }`}
+          >
+            {title}
+          </span>
+        </button>
+
+        {!isMinimized && (
+          <div className="flex items-center gap-2 min-w-0">
+            {headerActions}
+            <button
+              type="button"
+              onClick={() => onToggleExpand(isExpanded ? null : expandKey)}
+              aria-label={isExpanded ? `Restore ${title} panel` : `Expand ${title} panel`}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-faint transition hover:bg-surface-dim hover:text-ink cursor-pointer shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            >
+              {isExpanded ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+            </button>
+          </div>
+        )}
+
+        {isMinimized && (
+          <span className="text-ink-faint group-hover:text-jade transition-all">
+            <Maximize2 size={15} />
+          </span>
+        )}
+      </div>
 
       <div
         className={`min-h-0 flex-1 transition-opacity duration-300 ${
@@ -56,13 +80,34 @@ function Pane({ title, expandKey, expanded, onToggleExpand, children }) {
  * it's always one tap away from coming back. Panes stack top/bottom below
  * the `md` breakpoint.
  */
-export default function AppLayout({ leftTitle, rightTitle, left, right, expanded, onToggleExpand }) {
+export default function AppLayout({
+  leftTitle,
+  rightTitle,
+  left,
+  right,
+  leftHeaderActions,
+  rightHeaderActions,
+  expanded,
+  onToggleExpand,
+}) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden p-3 md:flex-row md:gap-4 md:p-4">
-      <Pane title={leftTitle} expandKey="left" expanded={expanded} onToggleExpand={onToggleExpand}>
+      <Pane
+        title={leftTitle}
+        headerActions={leftHeaderActions}
+        expandKey="left"
+        expanded={expanded}
+        onToggleExpand={onToggleExpand}
+      >
         {left}
       </Pane>
-      <Pane title={rightTitle} expandKey="right" expanded={expanded} onToggleExpand={onToggleExpand}>
+      <Pane
+        title={rightTitle}
+        headerActions={rightHeaderActions}
+        expandKey="right"
+        expanded={expanded}
+        onToggleExpand={onToggleExpand}
+      >
         {right}
       </Pane>
     </div>

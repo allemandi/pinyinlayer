@@ -243,19 +243,6 @@ export default function InputPanel({ rawText, onChangeRawText, onSubmit }) {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      {/* Header Bar: Clean Live Text Stats */}
-      <div className="flex items-center justify-between border-b border-rule/60 bg-surface/50 px-3.5 py-2 dark:border-slate-800 dark:bg-slate-900/50 shrink-0 select-none">
-        <span className="text-xs font-bold text-ink dark:text-slate-200">
-          Source Input
-        </span>
-
-        <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-faint">
-          <span>{stats.chars} chars</span>
-          <span className="text-rule">•</span>
-          <span>{stats.words} words</span>
-        </div>
-      </div>
-
       {/* Main Textarea Area */}
       <div className="relative flex min-h-0 flex-1 flex-col overflow-y-auto p-3.5 sm:p-5">
         <textarea

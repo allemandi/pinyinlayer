@@ -3,12 +3,12 @@ import { Layers, Moon, Sun, HelpCircle, FolderInput, X, ShieldCheck } from 'luci
 import AppLayout from './components/AppLayout.jsx';
 import InputPanel from './components/InputPanel.jsx';
 import Controls from './components/Controls.jsx';
-import ReaderView from './components/ReaderView.jsx';
+import ReaderView, { ReaderHeaderActions } from './components/ReaderView.jsx';
 import DefinitionPopover from './components/DefinitionPopover.jsx';
 import VocabDrawer from './components/VocabDrawer.jsx';
 import FlashcardModal from './components/FlashcardModal.jsx';
 import HelpModal from './components/HelpModal.jsx';
-import { cleanText } from './utils/cleanText.js';
+import { cleanText, countTextStats } from './utils/cleanText.js';
 import { useVocab } from './hooks/useVocab.js';
 import { useLocalStorage } from './hooks/useLocalStorage.js';
 import { decodeDeckPayload } from './utils/deckShare.js';
@@ -113,6 +113,8 @@ export default function App() {
   useEscapeKey(handleCancelImport, Boolean(pendingImportDeck));
   const importModalRef = useFocusTrap(Boolean(pendingImportDeck));
 
+  const stats = countTextStats(rawText);
+
   return (
     <div className="flex h-[100dvh] flex-col bg-paper dark:bg-slate-950">
       {/* Clean Header Bar */}
@@ -162,6 +164,14 @@ export default function App() {
         rightTitle="Interactive Reader"
         expanded={expanded}
         onToggleExpand={setExpanded}
+        leftHeaderActions={
+          <div className="flex items-center gap-2 text-[11px] font-semibold text-ink-faint mr-1 select-none">
+            <span>{stats.chars} chars</span>
+            <span className="text-rule">•</span>
+            <span>{stats.words} words</span>
+          </div>
+        }
+        rightHeaderActions={<ReaderHeaderActions cleanedText={cleanedText} />}
         left={
           <InputPanel rawText={rawText} onChangeRawText={setRawText} onSubmit={handleSubmit} />
         }
