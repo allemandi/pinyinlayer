@@ -187,15 +187,76 @@ function NonChineseToken({ text, reservePinyinRow, sizeConfig }) {
   );
 }
 
+export function ReaderHeaderActions({ cleanedText }) {
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [copiedToast, setCopiedToast] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      stopSpeech();
+    };
+  }, []);
+
+  if (!cleanedText?.trim()) return null;
+
+  const handleToggleAudio = () => {
+    if (isPlayingAudio) {
+      stopSpeech();
+      setIsPlayingAudio(false);
+    } else {
+      setIsPlayingAudio(true);
+      speakText(
+        cleanedText,
+        'zh-CN',
+        () => setIsPlayingAudio(false),
+        () => setIsPlayingAudio(false)
+      );
+    }
+  };
+
+  const handleCopyReaderText = () => {
+    if (!cleanedText.trim()) return;
+    navigator.clipboard?.writeText(cleanedText);
+    setCopiedToast(true);
+    setTimeout(() => setCopiedToast(false), 2500);
+  };
+
+  return (
+    <div className="flex items-center gap-1.5 sm:gap-2 mr-1">
+      <button
+        type="button"
+        onClick={handleToggleAudio}
+        title={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
+        aria-label={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
+        className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1 text-xs font-bold transition cursor-pointer h-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
+          isPlayingAudio
+            ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
+            : 'bg-surface border-rule text-ink-soft hover:bg-surface-dim hover:text-ink dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+        }`}
+      >
+        {isPlayingAudio ? <VolumeX size={13} className="animate-pulse" /> : <Volume2 size={13} />}
+        <span className="hidden sm:inline">{isPlayingAudio ? 'Stop' : 'Listen'}</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={handleCopyReaderText}
+        title="Copy plain reader text"
+        className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer h-8 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+      >
+        {copiedToast ? <Check size={13} className="text-jade" /> : <Copy size={13} />}
+        <span className="hidden sm:inline">{copiedToast ? 'Copied' : 'Copy Text'}</span>
+      </button>
+    </div>
+  );
+}
+
 export default function ReaderView({ cleanedText, charFormat, textSize = 'md', pinyinVisible, hskFilter, onTapToken, isSaved }) {
   const [paragraphs, setParagraphs] = useState([]);
   const [peekedKeys, setPeekedKeys] = useState(() => new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reloadToken, setReloadToken] = useState(0);
-
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [copiedToast, setCopiedToast] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -250,29 +311,6 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
     });
   }, []);
 
-  const handleToggleAudio = () => {
-    if (isPlayingAudio) {
-      stopSpeech();
-      setIsPlayingAudio(false);
-    } else {
-      if (!cleanedText.trim()) return;
-      setIsPlayingAudio(true);
-      speakText(
-        cleanedText,
-        'zh-CN',
-        () => setIsPlayingAudio(false),
-        () => setIsPlayingAudio(false)
-      );
-    }
-  };
-
-  const handleCopyReaderText = () => {
-    if (!cleanedText.trim()) return;
-    navigator.clipboard?.writeText(cleanedText);
-    setCopiedToast(true);
-    setTimeout(() => setCopiedToast(false), 2500);
-  };
-
   if (!cleanedText.trim()) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-6 text-center select-none">
@@ -318,40 +356,6 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
 
   return (
     <div className="flex h-full flex-col bg-transparent">
-      {/* Reader Target Header Toolbar */}
-      <div className="flex items-center justify-between border-b border-rule/60 bg-surface/50 px-3.5 py-2 dark:border-slate-800 dark:bg-slate-900/50 shrink-0 select-none">
-        <span className="text-xs font-bold text-ink dark:text-slate-200">
-          Annotated Reader
-        </span>
-
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          <button
-            type="button"
-            onClick={handleToggleAudio}
-            title={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
-            aria-label={isPlayingAudio ? 'Stop speech' : 'Listen to text'}
-            className={`inline-flex items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade ${
-              isPlayingAudio
-                ? 'bg-seal-soft border-seal text-seal dark:bg-rose-950 dark:text-rose-300'
-                : 'bg-surface border-rule text-ink-soft hover:bg-surface-dim hover:text-ink dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
-            }`}
-          >
-            {isPlayingAudio ? <VolumeX size={14} className="animate-pulse" /> : <Volume2 size={14} />}
-            <span>{isPlayingAudio ? 'Stop' : 'Listen'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCopyReaderText}
-            title="Copy plain reader text"
-            className="inline-flex items-center gap-1 rounded-xl border border-rule bg-surface px-2.5 py-1.5 text-xs font-bold text-ink-soft transition hover:bg-surface-dim hover:text-ink cursor-pointer h-9 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-jade dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-          >
-            {copiedToast ? <Check size={14} className="text-jade" /> : <Copy size={14} />}
-            <span>{copiedToast ? 'Copied' : 'Copy Text'}</span>
-          </button>
-        </div>
-      </div>
-
       {/* Reader Content Body */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         {loading ? (
