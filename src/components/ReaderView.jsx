@@ -137,9 +137,38 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
     onPeekEnd(tokenKey);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const container = e.currentTarget.closest('[data-reader-container="true"]');
+      if (container) {
+        const tokens = Array.from(container.querySelectorAll('button[data-chinese-token="true"]'));
+        const idx = tokens.indexOf(e.currentTarget);
+        if (idx >= 0 && idx < tokens.length - 1) {
+          tokens[idx + 1].focus();
+        }
+      }
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const container = e.currentTarget.closest('[data-reader-container="true"]');
+      if (container) {
+        const tokens = Array.from(container.querySelectorAll('button[data-chinese-token="true"]'));
+        const idx = tokens.indexOf(e.currentTarget);
+        if (idx > 0) {
+          tokens[idx - 1].focus();
+        }
+      }
+    }
+  };
+
+  const ariaLabel = `${token.text}${token.pinyin?.length ? `, pinyin: ${token.pinyin.join(' ')}` : ''}${saved ? ', saved' : ''}`;
+
   return (
     <button
       type="button"
+      data-chinese-token="true"
+      aria-label={ariaLabel}
+      onKeyDown={handleKeyDown}
       onClick={(e) => {
         if (longPressFired.current) {
           e.preventDefault();
@@ -355,7 +384,7 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
   const sizeConfig = TEXT_SIZE_CONFIG[textSize] || TEXT_SIZE_CONFIG.md;
 
   return (
-    <div className="flex h-full flex-col bg-transparent">
+    <div className="flex h-full flex-col bg-transparent" data-reader-container="true">
       {/* Reader Content Body */}
       <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         {loading ? (
