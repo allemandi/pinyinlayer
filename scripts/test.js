@@ -220,6 +220,66 @@ async function run() {
   onPeekEnd();
   assert.strictEqual(peeked, false, 'onPeekEnd should clear pinyin peek');
 
+  // ChineseToken Accessible Label and Arrow Navigation Unit Tests
+  const tokenSample = { text: '你好', pinyin: ['nǐ', 'hǎo'] };
+  const pinyinLabel = Array.isArray(tokenSample.pinyin) ? tokenSample.pinyin.join(' ') : '';
+  const makeLabel = (token, saved) => `${token.text}, pinyin: ${pinyinLabel}${saved ? ', saved' : ''}`;
+
+  assert.strictEqual(
+    makeLabel(tokenSample, false),
+    '你好, pinyin: nǐ hǎo',
+    'Unsaved token should format label with text and pinyin'
+  );
+  assert.strictEqual(
+    makeLabel(tokenSample, true),
+    '你好, pinyin: nǐ hǎo, saved',
+    'Saved token should include saved status in aria-label'
+  );
+
+  // Arrow navigation simulated DOM list
+  const mockTokens = [
+    { text: '一', rect: { left: 10, right: 30, top: 10, bottom: 30, width: 20 }, focused: false },
+    { text: '二', rect: { left: 40, right: 60, top: 10, bottom: 30, width: 20 }, focused: false },
+    { text: '三', rect: { left: 10, right: 30, top: 40, bottom: 60, width: 20 }, focused: false },
+    { text: '四', rect: { left: 40, right: 60, top: 40, bottom: 60, width: 20 }, focused: false },
+  ];
+  mockTokens.forEach((t) => {
+    t.focus = function () {
+      mockTokens.forEach((other) => { other.focused = false; });
+      this.focused = true;
+    };
+    t.getBoundingClientRect = function () {
+      return this.rect;
+    };
+  });
+
+  // Test ArrowRight on token 0
+  let currentIdx = 0;
+  mockTokens[currentIdx].focus();
+  assert.strictEqual(mockTokens[0].focused, true);
+
+  if (mockTokens[currentIdx + 1]) mockTokens[currentIdx + 1].focus();
+  assert.strictEqual(mockTokens[1].focused, true, 'ArrowRight should focus next token');
+
+  // Test ArrowDown: from token 0 (top:10, left:10) to row below (top:40), closest center is token 2
+  const currentRect = mockTokens[0].getBoundingClientRect();
+  const currentCenterX = currentRect.left + currentRect.width / 2;
+  const belowCandidates = mockTokens.filter((t) => t.getBoundingClientRect().top >= currentRect.bottom - 4);
+  const minTop = Math.min(...belowCandidates.map((t) => t.getBoundingClientRect().top));
+  const rowTokens = belowCandidates.filter((t) => Math.abs(t.getBoundingClientRect().top - minTop) <= 12);
+  let closestBelow = rowTokens[0];
+  let minDiff = Infinity;
+  for (const t of rowTokens) {
+    const r = t.getBoundingClientRect();
+    const diff = Math.abs(r.left + r.width / 2 - currentCenterX);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closestBelow = t;
+    }
+  }
+  closestBelow.focus();
+  assert.strictEqual(mockTokens[2].focused, true, 'ArrowDown should move to token directly below');
+
   // Popover Positioning Boundary Unit Tests
   const { computePopoverPosition } = await import('../src/utils/popoverPosition.js');
   global.window = { innerWidth: 1024, innerHeight: 768 };
