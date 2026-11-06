@@ -21,7 +21,7 @@
     "segmentit": "^2.0.3"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.4",
     "@vitejs/plugin-react": "^6.1.2",
     "cedict-json": "^1.3.20251213",
     "lucide-react": "^1.62.0",
