@@ -112,6 +112,100 @@ function PinyinSlot({ visible, children, reserveSpace, sizeConfig }) {
   );
 }
 
+function handleTokenArrowNavigation(e) {
+  const { key, currentTarget } = e;
+  if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(key)) return;
+
+  const container = currentTarget.closest('[data-reader-container="true"]');
+  if (!container) return;
+
+  const allTokens = Array.from(container.querySelectorAll('button[data-token="true"]'));
+  const currentIndex = allTokens.indexOf(currentTarget);
+  if (currentIndex === -1) return;
+
+  e.preventDefault();
+
+  if (key === 'ArrowRight') {
+    const nextToken = allTokens[currentIndex + 1];
+    if (nextToken) nextToken.focus();
+    return;
+  }
+
+  if (key === 'ArrowLeft') {
+    const prevToken = allTokens[currentIndex - 1];
+    if (prevToken) prevToken.focus();
+    return;
+  }
+
+  const currentRect = currentTarget.getBoundingClientRect();
+  const currentCenterX = currentRect.left + currentRect.width / 2;
+
+  if (key === 'ArrowDown') {
+    // Find tokens on rows below the current token
+    const candidates = allTokens.filter((token) => {
+      const rect = token.getBoundingClientRect();
+      return rect.top >= currentRect.bottom - 4; // allow slight tolerance
+    });
+
+    if (candidates.length > 0) {
+      // Find candidate in closest row below
+      const minTop = Math.min(...candidates.map((t) => t.getBoundingClientRect().top));
+      const rowTokens = candidates.filter(
+        (t) => Math.abs(t.getBoundingClientRect().top - minTop) <= 12
+      );
+
+      // Find token in that row horizontally closest to current center
+      let closest = rowTokens[0];
+      let minDiff = Infinity;
+      for (const t of rowTokens) {
+        const r = t.getBoundingClientRect();
+        const diff = Math.abs(r.left + r.width / 2 - currentCenterX);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = t;
+        }
+      }
+      closest.focus();
+    } else {
+      const nextToken = allTokens[currentIndex + 1];
+      if (nextToken) nextToken.focus();
+    }
+    return;
+  }
+
+  if (key === 'ArrowUp') {
+    // Find tokens on rows above the current token
+    const candidates = allTokens.filter((token) => {
+      const rect = token.getBoundingClientRect();
+      return rect.bottom <= currentRect.top + 4; // allow slight tolerance
+    });
+
+    if (candidates.length > 0) {
+      // Find candidate in closest row above
+      const maxBottom = Math.max(...candidates.map((t) => t.getBoundingClientRect().bottom));
+      const rowTokens = candidates.filter(
+        (t) => Math.abs(t.getBoundingClientRect().bottom - maxBottom) <= 12
+      );
+
+      // Find token in that row horizontally closest to current center
+      let closest = rowTokens[0];
+      let minDiff = Infinity;
+      for (const t of rowTokens) {
+        const r = t.getBoundingClientRect();
+        const diff = Math.abs(r.left + r.width / 2 - currentCenterX);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closest = t;
+        }
+      }
+      closest.focus();
+    } else {
+      const prevToken = allTokens[currentIndex - 1];
+      if (prevToken) prevToken.focus();
+    }
+  }
+}
+
 function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, onTapToken, onPeekStart, onPeekEnd, sizeConfig }) {
   const longPressFired = useRef(false);
   const pressTimer = useRef(null);
@@ -137,9 +231,14 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
     onPeekEnd(tokenKey);
   };
 
+  const pinyinLabel = Array.isArray(token.pinyin) ? token.pinyin.join(' ') : (token.pinyin || '');
+  const accessibleLabel = `${token.text}, pinyin: ${pinyinLabel}${saved ? ', saved' : ''}`;
+
   return (
     <button
       type="button"
+      data-token="true"
+      aria-label={accessibleLabel}
       onClick={(e) => {
         if (longPressFired.current) {
           e.preventDefault();
@@ -149,6 +248,7 @@ function ChineseToken({ token, tokenKey, showPinyin, reservePinyinRow, saved, on
         e.currentTarget.blur();
         onTapToken(token, e.currentTarget.getBoundingClientRect());
       }}
+      onKeyDown={handleTokenArrowNavigation}
       onContextMenu={(e) => e.preventDefault()}
       onMouseEnter={() => onPeekStart(tokenKey)}
       onMouseLeave={() => onPeekEnd(tokenKey)}
@@ -357,7 +457,12 @@ export default function ReaderView({ cleanedText, charFormat, textSize = 'md', p
   return (
     <div className="flex h-full flex-col bg-transparent">
       {/* Reader Content Body */}
-      <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+      <div
+        data-reader-container="true"
+        role="region"
+        aria-label="Chinese text reader"
+        className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"
+      >
         {loading ? (
           <div className="space-y-6 animate-pulse" aria-busy="true" aria-live="polite">
             {[1, 2, 3].map((p) => (
